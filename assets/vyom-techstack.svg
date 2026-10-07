@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1408" height="768" viewBox="0 0 1408 768">
+  <image x="0" y="0" width="1408" height="768" href="../TechnologyStack.png" xlink:href="../TechnologyStack.png"/>
+  <circle cx="704" cy="384" r="145" fill="none" stroke="#53cdc2" stroke-width="2" opacity=".24">
+    <animate attributeName="r" values="145;148.5;145" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".16;.34;.16" dur="1.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="4" fill="#6fabeB"><animateMotion dur="2.8s" begin="2s" repeatCount="indefinite" path="M704 239 L704 185 L704 239 L840 278 L886 240"/></circle>
+  <circle r="4" fill="#53cdc2"><animateMotion dur="3.2s" begin="3s" repeatCount="indefinite" path="M565 315 L465 281 M565 435 L438 503 M696 529 L696 560"/></circle>
+  <circle r="4" fill="#f48b73"><animateMotion dur="1s" begin="7.5s" repeatCount="indefinite" path="M840 487 L866 538 L934 574"/></circle>
+  <g fill="none" stroke="#53cdc2" stroke-width="2" opacity=".7">
+    <rect x="34" y="493" width="134" height="34" rx="7"><animate attributeName="opacity" values=".1;.85;.1" dur="5.5s" begin="4.5s" repeatCount="indefinite"/></rect>
+    <rect x="168" y="493" width="128" height="34" rx="7"><animate attributeName="opacity" values=".1;.85;.1" dur="5.5s" begin="4.7s" repeatCount="indefinite"/></rect>
+    <rect x="294" y="493" width="119" height="34" rx="7"><animate attributeName="opacity" values=".1;.85;.1" dur="5.5s" begin="4.9s" repeatCount="indefinite"/></rect>
+    <rect x="135" y="530" width="116" height="34" rx="7"><animate attributeName="opacity" values=".1;.85;.1" dur="5.5s" begin="5.1s" repeatCount="indefinite"/></rect>
+    <rect x="250" y="530" width="128" height="34" rx="7"><animate attributeName="opacity" values=".1;.85;.1" dur="5.5s" begin="5.3s" repeatCount="indefinite"/></rect>
+  </g>
+</svg>
