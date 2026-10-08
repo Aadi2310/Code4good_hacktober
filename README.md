@@ -10,43 +10,39 @@
 
 ## 2. Problem Statement
 
-Businesses receive invoices as spreadsheets, digital PDFs, scans, photographs, and handwritten documents. Manual entry is slow and error-prone. Basic OCR can read text but often loses the relationship between labels, values, and line items, and it does not establish whether GST fields or totals are consistent.
+Invoices arrive as spreadsheets, digital PDFs, scans, photos, and handwritten documents. Manual entry is slow and error-prone. Basic OCR reads text but cannot link labels, values, and line items, or check whether GST fields and totals are consistent.
 
-VYOM+ addresses this gap by turning supported invoice files into evidence-backed financial records, checking those records, and routing uncertain or inconsistent values for review before export.
+VYOM+ turns invoice files into evidence-backed financial records, validates them, and sends uncertain values to review before export.
 
 ## 3. Project Overview
 
-VYOM+ is a GST-focused document-intelligence proposal. It accepts `.xlsx`, `.csv`, `.pdf`, `.jpg`, `.jpeg`, and `.png` files and routes structured tables and visual documents through suitable processing paths.
-
-The planned output contains invoice headers, supplier and buyer details, GST identifiers, tax values, line items, validation results, confidence, and page or row provenance. The intended interface lets a reviewer inspect source evidence, correct flagged values, and export approved records as JSON or tabular data.
+VYOM+ accepts .xlsx, .csv, .pdf, .jpg, .jpeg, and .png files and routes each to a suitable pipeline. It outputs invoice headers, supplier and buyer details, GSTINs, tax values, line items, validation results, confidence, and source provenance. A reviewer checks flagged values against the source and exports approved records as JSON or tables.
 
 ## 4. Proposed Solution
 
-Use deterministic parsers for CSV and Excel, embedded-text extraction for digital PDFs, and an open-source OCR/document-AI pipeline for scans and images. A vision-language model handles difficult page-level interpretation and proposes structured fields. Python validation code then checks formats, relationships, and financial arithmetic.
+-Spreadsheets: deterministic CSV/Excel parsers.
+-Digital PDFs: embedded-text extraction.
+-Scans and images: open-source OCR plus a vision-language model (VLM) for hard pages.
+-Validation: Python checks formats, relationships, and arithmetic.
 
-Every field retains its source evidence and confidence. Missing or unreadable values stay null. Mismatches are reported with computed values; the system does not silently rewrite source amounts. Records below configurable confidence or validation thresholds enter a human review queue.
+Every field keeps its evidence and confidence. Unreadable values stay null, mismatches are reported and never silently rewritten, and low-confidence records go to human review.
 
 ### Uniqueness
 
-VYOM+ treats invoice processing as a financial data-quality workflow, not a text-recognition demo. Its distinguishing design combines:
-
-- **Evidence-backed extraction:** each value points to its source page, row, text, and—where available—bounding box.
-- **Field-level uncertainty:** a confident invoice number can pass while a weak GSTIN or handwritten amount is held for review.
-- **GST-aware reconciliation:** line-item taxable values and CGST, SGST, IGST, cess, and totals are connected and checked with decimal arithmetic.
-- **Hybrid routing:** spreadsheets avoid unnecessary model calls; OCR and visual understanding are used where the document requires them.
-- **Safe correction loop:** reviewer edits are auditable and can form a versioned evaluation set before any model or rule is changed.
-
-Potential extensions include an invoice confidence heatmap, supplier-specific field mapping, a visual GST roll-up graph, explainable supplier-period anomaly alerts, and assisted splitting of combined PDF batches. These are future ideas, not claimed MVP features.
+-Evidence-backed extraction: each value links to its page, row, text, and bounding box.
+-Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
+-GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
+-Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
+-Auditable corrections: reviewer edits are logged and can seed an evaluation set.
 
 ## 5. Objectives
 
-- Automatically identify supported file formats and route them to the right parser.
-- Extract invoice, GST, financial, and line-item fields into a canonical schema.
-- Prioritize reliable handling of handwritten invoices while maintaining printed and digital document accuracy.
-- Validate GSTIN shape, tax relationships, and invoice arithmetic.
-- Make uncertain values reviewable with confidence and source evidence.
-- Detect exact duplicates and surface likely near-duplicates for confirmation.
-- Export reviewed records in versioned JSON and CSV/XLSX formats.
+-Detect file formats and route them to the right parser.
+-Extract invoice, GST, financial, and line-item fields into one schema.
+-Prioritize handwritten invoices without losing printed and digital accuracy.
+-Validate GSTIN shape, tax relationships, and arithmetic.
+-Make uncertain values reviewable with confidence and evidence.
+-Flag duplicates and export reviewed records as versioned JSON and CSV/XLSX.
 
 ## 6. Target Users / Use Case
 
