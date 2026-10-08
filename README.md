@@ -1,4 +1,4 @@
-# VYOM+ — End-to-End AI-Powered GST Invoice Intelligence System
+# VYOM+ - End-to-End AI-Powered GST Invoice Intelligence System
 
 <p align="center">
   <img src="./assets/vyom-ai-invoice-intelligence.png" width="100%" alt="VYOM+ AI Invoice Intelligence - From Paper to Progress">
@@ -6,7 +6,7 @@
 
 ## 1. Project Name
 
-**VYOM+** — an end-to-end invoice intelligence system for extracting, validating, reviewing, and exporting GST invoice data.
+**VYOM+** - An end-to-end invoice intelligence system for extracting, validating, reviewing, and exporting GST invoice data.
 
 ## 2. Problem Statement
 
