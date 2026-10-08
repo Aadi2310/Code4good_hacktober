@@ -29,11 +29,11 @@ Every field keeps its evidence and confidence. Unreadable values stay null, mism
 
 ### Uniqueness
 
-• Evidence-backed extraction: each value links to its page, row, text, and bounding box.
-• Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
-• GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
-• Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
-• Auditable corrections: reviewer edits are logged and can seed an evaluation set.
+- • Evidence-backed extraction: each value links to its page, row, text, and bounding box.
+- • Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
+- • GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
+- • Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
+- • Auditable corrections: reviewer edits are logged and can seed an evaluation set.
 
 ## 5. Objectives
 
