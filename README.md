@@ -1,6 +1,8 @@
 # VYOM+ — End-to-End AI-Powered GST Invoice Intelligence System
 
-> **Qualifier proposal:** This repository documents the proposed system. The qualifier requires a README-only submission; implementation, datasets, and notebooks belong in the final hackathon deliverable.
+<p align="center">
+  <img src="./assets/vyom-ai-invoice-intelligence.png" width="100%" alt="VYOM+ AI Invoice Intelligence - From Paper to Progress">
+</p>
 
 ## 1. Project Name
 
@@ -82,7 +84,7 @@ AI does **not** determine whether a tax treatment is legally correct, verify GST
 ## 10. System Architecture
 
 <p align="center">
-  <img src="https://github.com/Aadi2310/vyom-gst-invoice-intelligence/releases/download/v1.0.0/vyom-system-architecture.gif" width="100%" alt="VYOM+ system architecture with animated invoice flow, validation, storage, and human review">
+  <img src="./assets/vyom-system-architecture.gif" width="100%" alt="VYOM+ system architecture with animated invoice flow, validation, storage, and human review">
 </p>
 
 **How to read the diagram:** Supported files enter through the upload UI and are routed by detected content. Spreadsheet files use a streaming parser, while PDFs and images go through page preparation and OCR/layout extraction. Both paths join at field extraction and normalization, then pass through GST checks, arithmetic reconciliation, and duplicate detection. Records and source evidence are stored separately; flagged records go to the reviewer before export.
@@ -153,14 +155,14 @@ The planned workflow is an orchestrated pipeline of bounded steps: detect → pa
 | Observability | OpenTelemetry, Prometheus, Grafana | Measures latency, errors, queue depth, model load, and review outcomes. |
 
 <p align="center">
-  <img src="https://github.com/Aadi2310/vyom-gst-invoice-intelligence/releases/download/v1.0.0/vyom-techstack.gif" width="100%" alt="VYOM+ technology stack with subtle animated data-flow and processing highlights">
+  <img src="./assets/vyom-techstack.gif" width="100%" alt="VYOM+ technology stack with subtle animated data-flow and processing highlights">
 </p>
 
 **How to read the diagram:** This figure groups the proposed tools by system responsibility and shows how they surround the canonical invoice schema. PaddleOCR and Qwen2-VL are the proposed MVP AI components; Tesseract, TrOCR, and LayoutLMv3 are alternatives or evaluation candidates, not mandatory MVP dependencies. Technology choices remain subject to license checks and benchmarking on representative GST invoices.
 
 ### Animation and Preview
 
-The architecture and technology-stack figures are animated GIFs attached to the public `v1.0.0` GitHub Release. GitHub renders them directly in this README; the repository itself can therefore remain README-only. Open either figure in a browser to view its loop, or download the GIF from the [release assets](https://github.com/Aadi2310/vyom-gst-invoice-intelligence/releases/tag/v1.0.0).
+The architecture and technology-stack figures are animated GIFs stored in the `assets` folder. GitHub renders them directly in this README. You can view the static PNG versions or the animated GIF versions in the assets directory.
 
 ## 15. Expected Features
 

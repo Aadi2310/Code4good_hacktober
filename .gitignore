@@ -1,2 +1,5 @@
 *.pdf
 *.png
+
+!assets/
+!assets/*.png
