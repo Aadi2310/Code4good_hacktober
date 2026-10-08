@@ -64,10 +64,10 @@ PaddleOCR and Qwen2-VL form the proposed MVP AI path. TrOCR is an evaluated cand
 
 ## 8. Why This Technology Was Selected
 
-• **PaddleOCR:** Runs locally and returns text with coordinates for source-grounded review.
-• **Qwen2-VL-2B-Instruct:** Compact open-weight VLM that uses layout to link labels, amounts, and table cells, and is realistic for hackathon hardware.
-• **TrOCR evaluation:** A handwriting candidate, but accuracy must be tested on real GST invoices.
-• **Deterministic validation alongside AI:** Code rules are easier to audit than model reasoning, so model output is only a candidate.
+- **PaddleOCR:** Runs locally and returns text with coordinates for source-grounded review.
+- **Qwen2-VL-2B-Instruct:** Compact open-weight VLM that uses layout to link labels, amounts, and table cells, and is realistic for hackathon hardware.
+- **TrOCR evaluation:** A handwriting candidate, but accuracy must be tested on real GST invoices.
+- **Deterministic validation alongside AI:** Code rules are easier to audit than model reasoning, so model output is only a candidate.
 
 A labelled sample set decides whether the VLM's accuracy justifies its cost.
 
