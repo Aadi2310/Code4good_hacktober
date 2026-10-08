@@ -20,37 +20,37 @@ VYOM+ accepts .xlsx, .csv, .pdf, .jpg, .jpeg, and .png files and routes each to 
 
 ## 4. Proposed Solution
 
--Spreadsheets: deterministic CSV/Excel parsers.
--Digital PDFs: embedded-text extraction.
--Scans and images: open-source OCR plus a vision-language model (VLM) for hard pages.
--Validation: Python checks formats, relationships, and arithmetic.
+• Spreadsheets: deterministic CSV/Excel parsers.
+• Digital PDFs: embedded-text extraction.
+• Scans and images: open-source OCR plus a vision-language model (VLM) for hard pages.
+• Validation: Python checks formats, relationships, and arithmetic.
 
 Every field keeps its evidence and confidence. Unreadable values stay null, mismatches are reported and never silently rewritten, and low-confidence records go to human review.
 
 ### Uniqueness
 
--Evidence-backed extraction: each value links to its page, row, text, and bounding box.
--Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
--GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
--Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
--Auditable corrections: reviewer edits are logged and can seed an evaluation set.
+• Evidence-backed extraction: each value links to its page, row, text, and bounding box.
+• Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
+• GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
+• Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
+• Auditable corrections: reviewer edits are logged and can seed an evaluation set.
 
 ## 5. Objectives
 
--Detect file formats and route them to the right parser.
--Extract invoice, GST, financial, and line-item fields into one schema.
--Prioritize handwritten invoices without losing printed and digital accuracy.
--Validate GSTIN shape, tax relationships, and arithmetic.
--Make uncertain values reviewable with confidence and evidence.
--Flag duplicates and export reviewed records as versioned JSON and CSV/XLSX.
+• Detect file formats and route them to the right parser.
+• Extract invoice, GST, financial, and line-item fields into one schema.
+• Prioritize handwritten invoices without losing printed and digital accuracy.
+• Validate GSTIN shape, tax relationships, and arithmetic.
+• Make uncertain values reviewable with confidence and evidence.
+• Flag duplicates and export reviewed records as versioned JSON and CSV/XLSX.
 
 ## 6. Target Users / Use Case
 
-**Target users:** accounts payable and receivable teams, small-business finance teams, accountants, and developers building GST-oriented accounting or procurement workflows.
+**Target users:** Accounts payable and receivable teams, small-business finance teams, accountants, and developers building GST-oriented accounting or procurement workflows.
 
-**Primary use case:** a finance operator uploads a batch of invoices, checks extracted fields and reconciliation flags in a review screen, corrects uncertain values, then exports approved records for downstream accounting.
+**Primary use case:** A finance operator uploads a batch of invoices, checks extracted fields and reconciliation flags in a review screen, corrects uncertain values, then exports approved records for downstream accounting.
 
-**Supported documents:** spreadsheet transactions, text-based or scanned PDFs (including multi-page and multi-invoice PDFs), and invoice photographs. English and regional scripts are supported only to the extent validated for the selected OCR/VLM model.
+**Supported documents:** Spreadsheet transactions, text-based or scanned PDFs (including multi-page and multi-invoice PDFs), and invoice photographs. English and regional scripts are supported only to the extent validated for the selected OCR/VLM model.
 
 ## 7. Open-Source AI Technology Selected
 
@@ -64,12 +64,12 @@ PaddleOCR and Qwen2-VL form the proposed MVP AI path. TrOCR is an evaluated cand
 
 ## 8. Why This Technology Was Selected
 
-- **PaddleOCR:** provides a practical open-source OCR pipeline that can run locally and return text with page positions, which supports source-grounded review.
-- **Qwen2-VL-2B-Instruct:** a comparatively compact open-weight VLM that can use visual layout context to associate labels, amounts, and table cells; the small variant is a more realistic hackathon inference target than a large hosted-only model.
-- **TrOCR evaluation:** transformer-based recognition is a relevant handwriting candidate, but handwriting is too variable to promise accuracy without testing on representative GST invoices.
-- **Deterministic validation alongside AI:** arithmetic and schema rules are easier to audit in code than in model-generated reasoning, so model output is treated as a candidate, never as the final authority.
+• **PaddleOCR:** Runs locally and returns text with coordinates for source-grounded review.
+• **Qwen2-VL-2B-Instruct:** Compact open-weight VLM that uses layout to link labels, amounts, and table cells, and is realistic for hackathon hardware.
+• **TrOCR evaluation:** A handwriting candidate, but accuracy must be tested on real GST invoices.
+• **Deterministic validation alongside AI:** Code rules are easier to audit than model reasoning, so model output is only a candidate.
 
-Selection is driven by local execution, visual document handling, evidence retention, and hackathon feasibility. A labeled sample set must decide whether the VLM adds enough accuracy to justify its latency and compute cost.
+A labelled sample set decides whether the VLM's accuracy justifies its cost.
 
 ## 9. AI's Role in the System
 
@@ -128,9 +128,7 @@ AI does **not** determine whether a tax treatment is legally correct, verify GST
 
 ## 13. Agentic Workflow (if applicable)
 
-The MVP does not require autonomous agents. Invoice extraction and financial validation benefit from a fixed, auditable sequence; an open-ended agent would add unpredictable tool calls without improving the core accounting checks.
-
-The planned workflow is an orchestrated pipeline of bounded steps: detect → parse/OCR → extract → normalize → validate → review/export. Each step has typed inputs and outputs, retry rules, and a recorded status. A later version may add a narrowly scoped review assistant that explains validation failures, but it must not change financial fields or approve records autonomously.
+The MVP uses no autonomous agents. Invoice validation needs a fixed, auditable sequence, so the workflow is a bounded pipeline: detect → parse/OCR → extract → normalize → validate → review/export. Each step has typed inputs and outputs, retries, and a recorded status. A later review assistant may explain validation failures, but it must not edit amounts or approve records.
 
 ## 14. Technology Stack
 
@@ -162,25 +160,22 @@ The architecture and technology-stack figures are animated GIFs stored in the `a
 
 ## 15. Expected Features
 
-- Multi-file upload with progress and per-file processing status.
-- Automatic signature-based routing for `.xlsx`, `.csv`, `.pdf`, `.jpg`, `.jpeg`, and `.png`.
-- OCR/layout extraction and field mapping for printed, digital, and handwritten invoice candidates.
-- Invoice header and line-item extraction with page/row evidence and confidence.
-- Editable review screen with validation messages and source-page highlighting.
-- GSTIN format checks, tax-component checks, and configurable arithmetic tolerances.
-- Total reconciliation that reports variance without silently changing extracted values.
-- Exact duplicate detection and reviewable near-duplicate suggestions.
-- Versioned JSON output and CSV/XLSX export after the configured review gate.
-- Job history and audit trail for extraction, validation, reviewer corrections, and export.
+• Multi-file upload with per-file status and signature-based routing.
+• OCR and field mapping for printed, digital, and handwritten invoices.
+• Header and line-item extraction with evidence and confidence.
+• Editable review screen with validation messages and source highlighting.
+• GSTIN, tax, and arithmetic checks with configurable tolerances. Variances are reported, never auto-fixed.
+• Exact and near-duplicate detection.
+• Versioned JSON and CSV/XLSX export after review, with an audit trail.
 
 ## 16. Implementation Approach
 
 The final hackathon implementation should be delivered in four practical milestones:
 
-1. **Working slice:** implement upload, file routing, CSV/XLSX parsing, canonical schema, a simple UI, and JSON export.
-2. **Document path:** add PDF text extraction, page rendering, image preprocessing, PaddleOCR, and evidence-linked field extraction.
-3. **Validation and review:** add GST/Decimal checks, confidence thresholds, review corrections, duplicate candidates, and audit history.
-4. **Evaluation and demo hardening:** benchmark representative files, measure latency and review rate, package with Docker, and document limitations.
+1. **Working slice:** Implement upload, file routing, CSV/XLSX parsing, canonical schema, a simple UI, and JSON export.
+2. **Document path:** Add PDF text extraction, page rendering, image preprocessing, PaddleOCR, and evidence-linked field extraction.
+3. **Validation and review:** Add GST/Decimal checks, confidence thresholds, review corrections, duplicate candidates, and audit history.
+4. **Evaluation and demo hardening:** Benchmark representative files, measure latency and review rate, package with Docker, and document limitations.
 
 Keep extraction, validation, and export behind separate interfaces so model changes do not alter accounting rules or the output contract. Start with one representative handwritten and printed dataset; expand only after the end-to-end slice works. Do not claim production accuracy without measured evaluation.
 
@@ -221,13 +216,12 @@ CSV/XLSX export should flatten invoice-level fields and provide a separate line-
 
 ## 18. Future Scope / Scalability
 
-- Add validated language packs and handwriting fine-tuning using permissioned, labeled examples.
-- Learn supplier-specific aliases and layouts from approved corrections, with tenant isolation and reviewer control.
-- Add assisted links between invoices, purchase orders, credit notes, and debit notes.
-- Add a confidence heatmap, GST roll-up visualization, and explainable period-over-period anomaly alerts.
-- Scale API and workers independently; use GPU worker pools for VLM inference and queue-based backpressure.
-- Add accounting/ERP connectors and permitted GSTIN status checks where authoritative interfaces and access allow.
-- Add tenant-level retention, regional storage, and model-provider policies.
+• Language packs and handwriting fine-tuning on permissioned, labeled data.
+• Supplier-specific layouts learned from approved corrections, with tenant isolation.
+• Linking invoices to purchase orders, credit notes, and debit notes.
+• Confidence heatmap, GST roll-up view, and anomaly alerts.
+• Independent scaling of API and workers, with GPU pools for VLM inference.
+• ERP connectors and authorized GSTIN status checks.
 
 ## 19. Open-Source Dependencies / Components
 
