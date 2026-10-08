@@ -20,29 +20,29 @@ VYOM+ accepts .xlsx, .csv, .pdf, .jpg, .jpeg, and .png files and routes each to 
 
 ## 4. Proposed Solution
 
-• Spreadsheets: deterministic CSV/Excel parsers.
-• Digital PDFs: embedded-text extraction.
-• Scans and images: open-source OCR plus a vision-language model (VLM) for hard pages.
-• Validation: Python checks formats, relationships, and arithmetic.
+- Spreadsheets: deterministic CSV/Excel parsers.
+- Digital PDFs: embedded-text extraction.
+- Scans and images: open-source OCR plus a vision-language model (VLM) for hard pages.
+- Validation: Python checks formats, relationships, and arithmetic.
 
 Every field keeps its evidence and confidence. Unreadable values stay null, mismatches are reported and never silently rewritten, and low-confidence records go to human review.
 
 ### Uniqueness
 
-- • Evidence-backed extraction: each value links to its page, row, text, and bounding box.
-- • Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
-- • GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
-- • Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
-- • Auditable corrections: reviewer edits are logged and can seed an evaluation set.
+- Evidence-backed extraction: each value links to its page, row, text, and bounding box.
+- Field-level uncertainty: a weak GSTIN is held for review even if the invoice number passes.
+- GST-aware reconciliation: line items, CGST, SGST, IGST, cess, and totals are checked with decimal arithmetic.
+- Hybrid routing: spreadsheets skip model calls, and OCR or vision is used only where needed.
+- Auditable corrections: reviewer edits are logged and can seed an evaluation set.
 
 ## 5. Objectives
 
-• Detect file formats and route them to the right parser.
-• Extract invoice, GST, financial, and line-item fields into one schema.
-• Prioritize handwritten invoices without losing printed and digital accuracy.
-• Validate GSTIN shape, tax relationships, and arithmetic.
-• Make uncertain values reviewable with confidence and evidence.
-• Flag duplicates and export reviewed records as versioned JSON and CSV/XLSX.
+- Detect file formats and route them to the right parser.
+- Extract invoice, GST, financial, and line-item fields into one schema.
+- Prioritize handwritten invoices without losing printed and digital accuracy.
+- Validate GSTIN shape, tax relationships, and arithmetic.
+- Make uncertain values reviewable with confidence and evidence.
+- Flag duplicates and export reviewed records as versioned JSON and CSV/XLSX.
 
 ## 6. Target Users / Use Case
 
@@ -160,13 +160,13 @@ The architecture and technology-stack figures are animated GIFs stored in the `a
 
 ## 15. Expected Features
 
-• Multi-file upload with per-file status and signature-based routing.
-• OCR and field mapping for printed, digital, and handwritten invoices.
-• Header and line-item extraction with evidence and confidence.
-• Editable review screen with validation messages and source highlighting.
-• GSTIN, tax, and arithmetic checks with configurable tolerances. Variances are reported, never auto-fixed.
-• Exact and near-duplicate detection.
-• Versioned JSON and CSV/XLSX export after review, with an audit trail.
+- Multi-file upload with per-file status and signature-based routing.
+- OCR and field mapping for printed, digital, and handwritten invoices.
+- Header and line-item extraction with evidence and confidence.
+- Editable review screen with validation messages and source highlighting.
+- GSTIN, tax, and arithmetic checks with configurable tolerances. Variances are reported, never auto-fixed.
+- Exact and near-duplicate detection.
+- Versioned JSON and CSV/XLSX export after review, with an audit trail.
 
 ## 16. Implementation Approach
 
@@ -216,12 +216,12 @@ CSV/XLSX export should flatten invoice-level fields and provide a separate line-
 
 ## 18. Future Scope / Scalability
 
-• Language packs and handwriting fine-tuning on permissioned, labeled data.
-• Supplier-specific layouts learned from approved corrections, with tenant isolation.
-• Linking invoices to purchase orders, credit notes, and debit notes.
-• Confidence heatmap, GST roll-up view, and anomaly alerts.
-• Independent scaling of API and workers, with GPU pools for VLM inference.
-• ERP connectors and authorized GSTIN status checks.
+- Language packs and handwriting fine-tuning on permissioned, labeled data.
+- Supplier-specific layouts learned from approved corrections, with tenant isolation.
+- Linking invoices to purchase orders, credit notes, and debit notes.
+- Confidence heatmap, GST roll-up view, and anomaly alerts.
+- Independent scaling of API and workers, with GPU pools for VLM inference.
+- ERP connectors and authorized GSTIN status checks.
 
 ## 19. Open-Source Dependencies / Components
 
