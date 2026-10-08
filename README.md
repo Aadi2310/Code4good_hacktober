@@ -262,6 +262,18 @@ Pin dependency versions and review model, training-data, and transitive dependen
 | Privacy and sensitive invoice data | Prefer local inference; restrict access, encrypt artifacts, set retention/deletion policies, and avoid invoice contents in logs. |
 | GST rules and legal interpretation | Treat implemented rules as configurable validation checks, not tax advice; have domain reviewers verify current requirements. |
 
+## Team
+
+**Team name:** Code4good
+
+**College:** RamdeoBaba University, Nagpur
+
+**Members:**
+- Aadi Dharaskar
+- Pallav Sur
+- Nayan Zanwar
+- Ishaan Choudhari
+
 ## References
 
 - Hacktober Fest Technical Document and Guidelines (provided for this proposal) — qualifier format, required README sections, final-project expectations, and evaluation criteria.
