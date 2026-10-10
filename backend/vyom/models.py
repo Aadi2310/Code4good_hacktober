@@ -55,3 +55,54 @@ class InvoiceRecord(BaseModel):
 class TabularOutput(BaseModel):
     records: list[InvoiceRecord]; table_rows: list[dict]; mapping: list[dict]
     unmapped_columns: list[dict] = Field(default_factory=list); warnings: list[Check] = Field(default_factory=list)
+
+# ---- Hand-off from Document AI (P2) to extraction (P3) ----
+class RawField(BaseModel):
+    """One source hypothesis for a field; value is the text as read."""
+    value: str | None
+    confidence: float
+    source: str
+    page: int | None = None
+    bbox: BBox | None = None
+    evidence_text: str | None = None
+
+class RawInvoice(BaseModel):
+    source: str
+    invoice: dict[str, list[RawField]] = Field(default_factory=dict)
+    line_items: list[dict[str, RawField]] = Field(default_factory=list)
+    illegible: list[str] = Field(default_factory=list)
+
+class Token(BaseModel):
+    text: str
+    conf: float
+    box: list[float]
+    page: int
+    line_id: int
+    kind: Literal["printed", "handwritten", "mixed"] = "printed"
+    source: str = "ocr"
+
+class PageData(BaseModel):
+    index: int
+    kind: Literal["digital", "scanned", "mixed", "skipped"]
+    original_path: str
+    enhanced_path: str
+    width: int
+    height: int
+    tokens: list[Token] = Field(default_factory=list)
+    layout_text: str
+    flags: list[str] = Field(default_factory=list)
+    quality: dict = Field(default_factory=dict)
+
+class Segment(BaseModel):
+    page_range: list[int]
+    qr: RawInvoice | None = None
+    rules: RawInvoice | None = None
+
+class Bundle(BaseModel):
+    input_kind: Literal["pdf_digital", "pdf_scanned", "pdf_mixed", "image_printed", "image_handwritten", "image_mixed"]
+    pages: list[PageData]
+    segments: list[Segment]
+    handwriting_ratio: float = 0.0
+    degraded_reasons: list[str] = Field(default_factory=list)
+    engines: dict[str, str] = Field(default_factory=dict)
+    timings_ms: dict[str, int] = Field(default_factory=dict)
