@@ -1,0 +1,2 @@
+# P3's deterministic path uses only Python's standard library.
+# The OpenAI-compatible provider also uses urllib; no VLM model packages required.
