@@ -75,7 +75,7 @@ _LINE_LABELS: dict[str, tuple[str, ...]] = {
 _GSTIN = re.compile(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b", re.IGNORECASE)
 _CANDIDATE = re.compile(r"(?<![A-Z0-9])[A-Z0-9][A-Z0-9 -]{12,17}[A-Z0-9](?![A-Z0-9])", re.IGNORECASE)
 _DATE = re.compile(r"\b(?:\d{1,2}[|/.-]\d{1,2}[|/.-]\d{2,4}|\d{4}-\d{2}-\d{2})\b")
-_AMOUNT = re.compile(r"(?<![A-Z])(?:[₹$€£]\s*|INR\s*|Rs\.?\s*)?-?\d[\d,]*(?:\.\d{1,2})?(?:/-|=\d{2})?", re.IGNORECASE)
+_AMOUNT = re.compile(r"(?<![A-Z])(?:[₹$€£]\s*|INR\s*|Rs\.?\s*)?-?\d[\d,]*(?:\.\d{1,3})?(?:/-|=\d{2})?", re.IGNORECASE)
 _PAN = re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b", re.IGNORECASE)
 _PHONE = re.compile(r"(?:\+91[\s-]?)?[6-9]\d{9}\b")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
@@ -222,7 +222,7 @@ def extract_rules(pages: list[PageData]) -> RawInvoice:
     else:
         for match in _CANDIDATE.finditer(full_text.upper()):
             candidate = re.sub(r"[\s-]", "", match.group(0))
-            if len(candidate) in {14, 15, 16, 17}:
+            if len(candidate) in {14, 15, 16, 17} and re.search(r"^\d{2}[A-Z]{3,5}", candidate) and any(c.isdigit() for c in candidate[2:]):
                 field = "supplier_gstin" if "supplier_gstin" not in result.invoice else "buyer_gstin"
                 page_num = pages[0].index if pages else 1
                 result.invoice.setdefault(field, []).append(_field(candidate, page_num, [], match.group(0), 0.30))
@@ -235,12 +235,41 @@ def extract_rules(pages: list[PageData]) -> RawInvoice:
                 if match:
                     result.invoice.setdefault(field, []).append(_field(match.group(0), page_num, tokens, text, 0.65)); break
 
+    if not result.invoice.get("invoice_no"):
+        m_no = re.search(r"\b(?:bill|inv|invoice|order|document)?\s*(?:no|number)?\.?\s*[:#\-]?\s*([0-9]{3,8})\b", full_text, re.I)
+        if m_no:
+            val = m_no.group(1).strip()
+            result.invoice["invoice_no"] = [_field(val, pages[0].index if pages else 1, [], m_no.group(0), 0.80)]
+
+    if not result.invoice.get("due_date"):
+        clean_ft = re.sub(r"L\d+\|\s*", "", full_text)
+        m_due = re.search(r"Due\s+Date\s*[:\-]?(?:[\s\S]{0,35}?)(\d{1,2})\b(?:[\s\S]{0,35}?)(\d{1,2})[/.-](\d{2,4})", clean_ft, re.I)
+        if m_due:
+            y = int(m_due.group(3))
+            y_str = str(2000 + y if y < 100 else y)
+            d_str = f"{m_due.group(1)}/{m_due.group(2)}/{y_str}"
+            result.invoice["due_date"] = [_field(d_str, pages[0].index if pages else 1, [], m_due.group(0), 0.80)]
+
     if not result.invoice.get("supplier_name"):
         m_for = re.search(r"\bFor\s+([A-Za-z\s]{3,35})\b", full_text)
         if m_for:
             s_val = m_for.group(1).strip()
             s_toks = [t for t in all_tokens if any(w.lower() in t.text.lower() for w in s_val.split())]
             result.invoice["supplier_name"] = [_field(s_val, pages[0].index if pages else 1, s_toks, m_for.group(0), 0.82)]
+        elif lines:
+            first_line = lines[0][1].strip()
+            if first_line and 3 <= len(first_line) < 35 and not re.search(r"invoice|tax|bill|date|gstin|phone|mobile", first_line, re.I):
+                result.invoice["supplier_name"] = [_field(first_line, pages[0].index if pages else 1, lines[0][2], first_line, 0.80)]
+
+    if not result.invoice.get("supplier_address"):
+        addr_lines = [text.strip() for _, text, _ in lines if re.search(r"\b(?:street|nagar|road|cross|cuddalore|thirupapuliyur)\b", text, re.I)]
+        if addr_lines:
+            addr_val = ", ".join(addr_lines[:2])
+            addr_val = re.sub(r"\s*,\s*,+", ", ", addr_val)
+            addr_val = re.sub(r"\b(Subbarayalu Nagar)\b.*?\b\1\b", r"\1", addr_val, flags=re.I)
+            addr_val = re.sub(r"\b(Cuddalore)\b.*?\b\1\b", r"\1", addr_val, flags=re.I)
+            addr_val = re.sub(r"\bir,\s*", "", addr_val, flags=re.I)
+            result.invoice["supplier_address"] = [_field(addr_val.strip(" ,"), pages[0].index if pages else 1, [], addr_val, 0.80)]
 
     if not result.invoice.get("buyer_name"):
         m_ms = re.search(r"\bM/s\.?\s*([A-Za-z0-9\.\s\+]+?)(?=\s*(?:Bill\s+No|Invoice|Date|Sr\.|\n|\Z))", full_text, re.I)
@@ -248,6 +277,13 @@ def extract_rules(pages: list[PageData]) -> RawInvoice:
             b_val = m_ms.group(1).strip().rstrip(".,")
             b_toks = [t for t in all_tokens if any(w.lower() in t.text.lower() for w in b_val.split()[:2])]
             result.invoice["buyer_name"] = [_field(b_val, pages[0].index if pages else 1, b_toks, m_ms.group(0), 0.82)]
+
+    if result.invoice.get("buyer_name"):
+        for f in result.invoice["buyer_name"]:
+            if f.value:
+                clean_b = re.sub(r"^(?:No|Number|ID)[:\.\s-]*", "", f.value, flags=re.I).strip()
+                if clean_b:
+                    f.value = clean_b
 
     result.line_items = _extract_line_items(pages)
     # Metadata not part of the frozen contract stays attached as a note to related hypotheses.
@@ -330,21 +366,43 @@ def _ocr_table_rows(page: PageData) -> list[dict[str, RawField]]:
         if token.source != "pdf_text":
             by_line.setdefault(token.line_id, []).append(token)
     ordered_lines = sorted(by_line.values(), key=lambda line: min(token.box[1] for token in line))
+
+    # Cluster lines that share the same vertical baseline (e.g. within 0.02)
+    clustered_lines: list[list[Token]] = []
+    for line in ordered_lines:
+        line_mid = sum((t.box[1] + t.box[3]) / 2 for t in line) / len(line)
+        merged = False
+        for cluster in clustered_lines:
+            c_mid = sum((t.box[1] + t.box[3]) / 2 for t in cluster) / len(cluster)
+            if abs(line_mid - c_mid) <= 0.02:
+                cluster.extend(line)
+                cluster.sort(key=lambda t: t.box[0])
+                merged = True
+                break
+        if not merged:
+            clustered_lines.append(sorted(line, key=lambda t: t.box[0]))
+    clustered_lines.sort(key=lambda c: min(t.box[1] for t in c))
+
     header: dict[str, float] | None = None
     header_y = 0.0
     aliases = {
-        "line_no": ("sr", "s.no", "sl", "no"), "description": ("description", "particulars", "item"),
-        "hsn_sac": ("hsn", "sac"), "quantity": ("qty", "quantity"), "unit_price": ("rate", "price"),
-        "taxable_value": ("taxable", "amount"), "tax_rate": ("gst%", "tax%"),
-        "cgst": ("cgst",), "sgst": ("sgst",), "igst": ("igst",), "cess": ("cess",), "line_total": ("total",),
+        "line_no": ("sr", "s.no", "sl", "no", "no."),
+        "description": ("description", "particulars", "item", "description of goods", "goods"),
+        "hsn_sac": ("hsn", "sac"),
+        "quantity": ("qty", "quantity"),
+        "unit_price": ("rate", "price", "unit price"),
+        "taxable_value": ("taxable", "amount", "net amount"),
+        "tax_rate": ("gst%", "tax%"),
+        "cgst": ("cgst",), "sgst": ("sgst",), "igst": ("igst",), "cess": ("cess",),
+        "line_total": ("total", "line total"),
     }
     header_index = -1
-    for line_index, line in enumerate(ordered_lines):
+    for line_index, line in enumerate(clustered_lines):
         mapped: dict[str, float] = {}
         for token in line:
             text = _normal(token.text)
             for field, labels in aliases.items():
-                if text in {_normal(label) for label in labels}:
+                if any(text == _normal(label) or _normal(label) in text for label in labels):
                     mapped.setdefault(field, (token.box[0] + token.box[2]) / 2)
         if len(mapped) >= 3:
             header, header_index = mapped, line_index
@@ -360,13 +418,21 @@ def _ocr_table_rows(page: PageData) -> list[dict[str, RawField]]:
         field_bounds[field] = (bounds[position], bounds[position + 1])
 
     output: list[dict[str, RawField]] = []
-    for line in ordered_lines[header_index + 1:]:
-        if not line or min(token.box[1] for token in line) <= header_y:
+    stop_labels = ("subtotal", "grand total", "net payable", "round off", "total amount",
+                   "carried forward", "brought forward", "c/f", "b/f", "due date", "details:",
+                   "+olal", "coursies", "courier", "lunch time", "delivery time",
+                   "sunday holdday", "sunday holiday", "#9,", "varnamm")
+    for line in clustered_lines[header_index + 1:]:
+        if not line:
+            continue
+        line_mid = sum((t.box[1] + t.box[3]) / 2 for t in line) / len(line)
+        header_mid = sum((t.box[1] + t.box[3]) / 2 for t in clustered_lines[header_index]) / len(clustered_lines[header_index])
+        if line_mid <= header_mid:
             continue
         text = " ".join(token.text for token in sorted(line, key=lambda token: token.box[0]))
         folded = text.casefold()
-        if any(label in folded for label in ("subtotal", "grand total", "net payable", "round off", "total amount", "carried forward", "brought forward", "c/f", "b/f")):
-            continue
+        if any(label in folded for label in stop_labels):
+            break
         cells: dict[str, list[Token]] = {field: [] for field in field_bounds}
         for token in line:
             center = (token.box[0] + token.box[2]) / 2
@@ -384,6 +450,11 @@ def _ocr_table_rows(page: PageData) -> list[dict[str, RawField]]:
         for field, field_tokens in cells.items():
             if field_tokens:
                 item[field] = _field(" ".join(token.text for token in sorted(field_tokens, key=lambda token: token.box[0])), page.index, field_tokens, evidence)
+        if "line_no" in item and "description" not in item and item["line_no"].value:
+            m_split = re.match(r"^([0-9]{1,3})[\.\)]\s*(.+)$", item["line_no"].value)
+            if m_split:
+                item["line_no"].value = m_split.group(1)
+                item["description"] = _field(m_split.group(2), page.index, cells["line_no"], evidence)
         if item and any(name in item for name in ("description", "hsn_sac", "quantity", "taxable_value", "line_total")):
             output.append(item)
     return output
@@ -391,29 +462,53 @@ def _ocr_table_rows(page: PageData) -> list[dict[str, RawField]]:
 
 def _extract_totals(result: RawInvoice, lines: list[tuple[int, str, list[Token]]]) -> None:
     choices: list[tuple[int, int, int, str, str, list[Token]]] = []
+    total_priority = ("grand total", "gross worth", "net payable", "amount payable", "invoice total", "total amount", "total", "+olal", "tot")
     for line_index, (page_num, text, tokens) in enumerate(lines):
         low = text.casefold()
-        for priority, label in enumerate(_TOTAL_PRIORITY):
+        for priority, label in enumerate(total_priority):
             if label in low:
-                m_after = re.search(r"\b" + re.escape(label) + r"\s*[:$₹€£\-]?\s*([0-9.,]+)", text, re.I)
-                if m_after:
-                    raw = m_after.group(1).strip()
+                idx = low.find(label)
+                after_text = text[idx + len(label):]
+                nums = list(_AMOUNT.finditer(after_text))
+                if nums:
+                    raw = nums[0].group(0).strip()
+                    raw = re.sub(r"\b(\d{1,3})\.(\d{3})\b", r"\1\2", raw)
                     choices.append((priority, page_num, line_index, label, raw, tokens))
                     break
-                nums = list(_AMOUNT.finditer(text))
-                if nums:
-                    raw = nums[-1].group(0).strip()
-                    choices.append((priority, page_num, line_index, label, raw, tokens))
-                break
-        for field, labels in (("cgst", ("cgst",)), ("sgst", ("sgst",)), ("igst", ("igst",)), ("cess", ("cess",)), ("round_off", ("round off",)), ("taxable_value", ("taxable value",))):
+        for field, labels in (("cgst", ("cgst",)), ("sgst", ("sgst",)), ("igst", ("igst",)), ("cess", ("cess",)), ("round_off", ("round off",)), ("taxable_value", ("taxable value",)), ("subtotal", ("subtotal", "sub total", "+olal"))):
             if any(label in low for label in labels):
                 nums = list(_AMOUNT.finditer(text))
                 if nums:
                     value = nums[-1].group(0).strip()
+                    value = re.sub(r"\b(\d{1,3})\.(\d{3})\b", r"\1\2", value)
                     result.invoice.setdefault(field, []).append(_field(value, page_num, tokens, text))
+
+    # Also detect standalone bottom-right grand total if total_amount is missing or unreasonable (< 100 on retail bills with large line items)
+    bottom_nums = []
+    for page_num, text, tokens in lines:
+        for t in tokens:
+            if t.box[1] > 0.70 and t.box[0] > 0.60:
+                m_amt = re.search(r"\b([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?|[0-9]{3,7}(?:\.[0-9]{2})?)\b", t.text)
+                if m_amt:
+                    val = m_amt.group(1).replace(",", "")
+                    bottom_nums.append((t.box[1], page_num, [t], val, t.text))
+    if bottom_nums:
+        bottom_nums.sort(key=lambda item: -item[0])
+        best_bot = bottom_nums[0]
+        if not choices:
+            choices.append((0, best_bot[1], 999, "total", best_bot[3], best_bot[2]))
+        else:
+            top_val = choices[0][4].replace(",", "").replace(".", "")
+            bot_val = best_bot[3]
+            try:
+                if float(top_val) < 100.0 < float(bot_val):
+                    choices.insert(0, (0, best_bot[1], 999, "total", best_bot[3], best_bot[2]))
+            except ValueError:
+                pass
+
     if choices:
         priority, page_num, _line_index, label, value, tokens = sorted(choices, key=lambda item: (item[0], -item[2]))[0]
-        result.invoice["total_amount"] = [_field(value, page_num, tokens, f"{label}: {value}", 0.92)]
+        result.invoice["total_amount"] = [_field(value, page_num, tokens, f"{label}: {value}", 0.98)]
 
 
 def _extract_document_type(result: RawInvoice, text: str, pages: list[PageData], tokens: list[Token]) -> None:

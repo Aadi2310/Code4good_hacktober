@@ -267,16 +267,23 @@ def extract_model_fields(pages: list[PageData]) -> RawInvoice:
     norm_layout = re.sub(r"(\d)\s+(\d{3}(?:[.,]|\b))", r"\1\2", full_layout)
     norm_layout = re.sub(r"(\d)\s+(\d{3}(?:[.,]|\b))", r"\1\2", norm_layout)
     total_m = re.search(r"Total\s*[$₹€£]?\s*([0-9.,]+)\s*[$₹€£]?\s*([0-9.,]+)\s*[$₹€£]?\s*([0-9.,]+)", norm_layout, re.I)
+    is_valid_3col = False
     if total_m:
         subtot = _clean_amount(total_m.group(1))
         tax_amt = _clean_amount(total_m.group(2))
         tot_amt = _clean_amount(total_m.group(3))
+        try:
+            s, t, tot = float(subtot), float(tax_amt), float(tot_amt)
+            if abs(s + t - tot) <= 1.5:
+                is_valid_3col = True
+                raw_invoice.invoice["subtotal"] = [_field(subtot, p_num, [], f"Net worth: {subtot}", conf_map.get("subtotal", 0.94))]
+                raw_invoice.invoice["total_tax"] = [_field(tax_amt, p_num, [], f"VAT tax: {tax_amt}", conf_map.get("total_tax", 0.93))]
+                raw_invoice.invoice["total_amount"] = [_field(tot_amt, p_num, [], f"Gross total: {tot_amt}", conf_map.get("total_amount", 0.96))]
+        except ValueError:
+            pass
 
-        raw_invoice.invoice["subtotal"] = [_field(subtot, p_num, [], f"Net worth: {subtot}", conf_map.get("subtotal", 0.94))]
-        raw_invoice.invoice["total_tax"] = [_field(tax_amt, p_num, [], f"VAT tax: {tax_amt}", conf_map.get("total_tax", 0.93))]
-        raw_invoice.invoice["total_amount"] = [_field(tot_amt, p_num, [], f"Gross total: {tot_amt}", conf_map.get("total_amount", 0.96))]
-    else:
-        m_tot = re.search(r"(?:Grand\s+Total|Total\s+Amount|Gross\s+worth|Net\s+Payable|Total)\s*[:$₹€£\-]?\s*([0-9.,]+)", full_layout, re.I)
+    if not is_valid_3col:
+        m_tot = re.search(r"(?:Grand\s+Total|Total\s+Amount|Gross\s+worth|Net\s+Payable|Total)\s*[:$₹€£\-]?\s*([0-9]{1,3}(?:[.,][0-9]{3})+(?:\.[0-9]{2})?|[0-9]+(?:\.[0-9]{2})?)", full_layout, re.I)
         if m_tot:
             tot_amt = _clean_amount(m_tot.group(1))
             raw_invoice.invoice["total_amount"] = [_field(tot_amt, p_num, [], m_tot.group(0), conf_map.get("total_amount", 0.96))]
