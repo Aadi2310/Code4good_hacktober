@@ -1,0 +1,13 @@
+Invoice No;Date;Supplier;Supplier GSTIN;Description;HSN;Qty;Rate;Taxable;GST;Total
+VY-2025-0001;2025-01-01;Blue Banyan Systems;27AAPFU0939F1ZV;Cloud hosting - annual plan;998315;1;Rs. 145000.00/-;145000.00;32643.90;213998.90
+;2025-01-01;Blue Banyan Systems;27AAPFU0939F1ZV;Implementation and support;998313;1;Rs. 36355.00/-;36355.00;32643.90;213998.90
+;;;;TOTAL;;;;181355.00;32643.90;213998.90
+Invoice No;Date;Supplier;Supplier GSTIN;Description;HSN;Qty;Rate;Taxable;GST;Total
+VY-2026-0002;2025-02-02;Northstar Digital;29ABCDE1234F1ZW;Cloud hosting - annual plan;998315;1;Rs. 143750.00/-;143750.00;32441.40;212671.40
+;2025-02-02;Northstar Digital;29ABCDE1234F1ZW;Implementation and support;998313;1;Rs. 36480.00/-;36480.00;32441.40;212671.40
+;;;;TOTAL;;;;180230.00;32441.40;212671.40
+Invoice No;Date;Supplier;Supplier GSTIN;Description;HSN;Qty;Rate;Taxable;GST;Total
+VY-2025-0003;2025-03-03;Aster Works;07AAACR5055K1Z9;Cloud hosting - annual plan;998315;1;Rs. 142500.00/-;142500.00;32238.90;211343.90
+;2025-03-03;Aster Works;07AAACR5055K1Z9;Implementation and support;998313;1;Rs. 36605.00/-;36605.00;32238.90;211343.90
+;;;;TOTAL;;;;179105.00;32238.90;211343.90
+Invoice No;Date;Supplier;Supplier GSTIN;Description;HSN;Qty;Rate;Taxable;GST;Total

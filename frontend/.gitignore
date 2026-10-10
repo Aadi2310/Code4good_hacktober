@@ -1,0 +1,4 @@
+/node_modules/
+/dist/
+!/public/samples/*.pdf
+!/public/samples/*.png

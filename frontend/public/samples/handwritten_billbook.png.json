@@ -1,0 +1,61 @@
+{
+  "invoice": {
+    "invoice_no": "VY-2025-0001",
+    "invoice_date": "2025-01-01",
+    "due_date": "2025-01-01",
+    "document_type": "tax_invoice",
+    "currency": "INR",
+    "place_of_supply": "Maharashtra (27)",
+    "supplier_name": "Blue Banyan Systems",
+    "supplier_address": "42 Market Road, Pune, India",
+    "supplier_gstin": "27AAPFU0939F1ZV",
+    "buyer_name": "Cloudwise Technologies Pvt. Ltd.",
+    "buyer_address": "18 Lake View, Mumbai, India",
+    "buyer_gstin": "29ABCDE1234F1ZW",
+    "subtotal": "181355.00",
+    "discount": "0.00",
+    "taxable_value": "181355.00",
+    "cgst": "16321.95",
+    "sgst": "16321.95",
+    "igst": "0.00",
+    "cess": "0.00",
+    "total_tax": "32643.90",
+    "round_off": "0.00",
+    "total_amount": "213998.90",
+    "amount_in_words": "Rupees 213998.90 only"
+  },
+  "line_items": [
+    {
+      "line_no": "1",
+      "description": "Cloud hosting - annual plan",
+      "hsn_sac": "998315",
+      "quantity": "1",
+      "unit": "year",
+      "unit_price": "145000.00",
+      "discount": "0.00",
+      "taxable_value": "145000.00",
+      "tax_rate": "18",
+      "cgst": "13050.00",
+      "sgst": "13050.00",
+      "igst": "0.00",
+      "cess": "0.00",
+      "line_total": "171100.00"
+    },
+    {
+      "line_no": "2",
+      "description": "Implementation and support",
+      "hsn_sac": "998313",
+      "quantity": "1",
+      "unit": "service",
+      "unit_price": "36355.00",
+      "discount": "0.00",
+      "taxable_value": "36355.00",
+      "tax_rate": "18",
+      "cgst": "3271.95",
+      "sgst": "3271.95",
+      "igst": "0.00",
+      "cess": "0.00",
+      "line_total": "42898.90"
+    }
+  ]
+}
