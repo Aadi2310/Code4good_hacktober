@@ -46,7 +46,7 @@ class RecordSource(BaseModel):
 class Quality(BaseModel):
     overall_confidence: float = 0; handwriting_ratio: float = 0; degraded: bool = False
     degraded_reasons: list[str] = Field(default_factory=list); engines: dict[str, str] = Field(default_factory=dict)
-    timings_ms: dict[str, int] = Field(default_factory=dict); page_flags: list[dict] = Field(default_factory=list)
+    timings_ms: dict[str, int] = Field(default_factory=dict); page_flags: list[dict | str] = Field(default_factory=list)
 class InvoiceRecord(BaseModel):
     schema_version: str = "1.0"; record_id: str; source: RecordSource
     invoice: dict[str, FV]; line_items: list[dict[str, FV]] = Field(default_factory=list)

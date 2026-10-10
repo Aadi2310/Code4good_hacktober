@@ -33,6 +33,7 @@ def detect(path: Path) -> Detected:
     elif b.startswith(b"%PDF-"): kind,mime="pdf","application/pdf"
     elif b.startswith(b"\xff\xd8\xff"): kind,mime="jpeg","image/jpeg"
     elif b.startswith(b"\x89PNG\r\n\x1a\n"): kind,mime="png","image/png"
+    elif b.startswith(b"RIFF") and len(b) >= 12 and b[8:12] == b"WEBP": kind,mime="jpeg","image/webp"
     elif b.startswith((b"\xd0\xcf\x11\xe0",)): raise PipelineError("UNSUPPORTED_FORMAT", "Legacy XLS is not supported")
     else:
         import csv,io
@@ -57,5 +58,5 @@ def detect(path: Path) -> Detected:
         if sum(len(row)>=2 for row in parsed[:50])<2:
             raise PipelineError("UNSUPPORTED_FORMAT","Text file does not contain a delimited table")
         kind,mime="csv","text/csv"
-    expected={".xlsx":"xlsx", ".csv":"csv", ".pdf":"pdf", ".jpg":"jpeg", ".jpeg":"jpeg", ".png":"png"}
+    expected={".xlsx":"xlsx", ".csv":"csv", ".pdf":"pdf", ".jpg":"jpeg", ".jpeg":"jpeg", ".png":"png", ".webp":"jpeg"}
     return Detected(kind,mime,ext in expected and expected[ext] != kind)

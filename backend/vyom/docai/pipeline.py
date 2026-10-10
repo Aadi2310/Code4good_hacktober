@@ -59,7 +59,7 @@ def build_bundle(path: Path, kind: str, work_dir: Path, options: dict) -> Bundle
     if path.stat().st_size == 0:
         raise PipelineError("EMPTY_FILE", "The source file is empty.")
     kind = str(kind).lower().lstrip(".")
-    if kind in {"jpg", "jpeg"}:
+    if kind in {"jpg", "jpeg", "webp"}:
         kind = "jpeg"
     if kind not in {"pdf", "jpeg", "png"}:
         raise PipelineError("UNSUPPORTED_FORMAT", "Document AI accepts PDF, JPEG, and PNG files.", {"kind": kind})

@@ -23,7 +23,7 @@ def parse_date(s: str | None, *, today: date | None = None) -> tuple[str | None,
         except ValueError:
             pass
     else:
-        m = re.fullmatch(r"(\d{1,2})[ /.-]+(\d{1,2})[ /.-]+(\d{2,4})", text)
+        m = re.fullmatch(r"(\d{1,2})[ |/.-]+(\d{1,2})[ |/.-]+(\d{2,4})", text)
         if m:
             day, month, year = map(int, m.groups())
             if year < 100:

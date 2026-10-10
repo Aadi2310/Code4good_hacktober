@@ -107,7 +107,12 @@ def merge_segment(segment: Any, source: Any, bundle: Any, vlm_hypothesis: dict[s
     src = dict(source) if isinstance(source, dict) else source.model_dump()
     page_range = list(_get(segment, "page_range", []) or [])
     src["page_range"] = page_range
-    quality = Quality(handwriting_ratio=float(_get(bundle, "handwriting_ratio", 0)), degraded=bool(_get(bundle, "degraded_reasons", [])), degraded_reasons=list(_get(bundle, "degraded_reasons", [])), engines=dict(_get(bundle, "engines", {})), timings_ms=dict(_get(bundle, "timings_ms", {})), page_flags=[flag for page in _get(bundle, "pages", []) for flag in _get(page, "flags", [])])
+    flags_list = []
+    for page in _get(bundle, "pages", []):
+        p_idx = _get(page, "index", 1)
+        for flag in _get(page, "flags", []):
+            flags_list.append({"page": p_idx, "flag": flag} if isinstance(flag, str) else flag)
+    quality = Quality(handwriting_ratio=float(_get(bundle, "handwriting_ratio", 0)), degraded=bool(_get(bundle, "degraded_reasons", [])), degraded_reasons=list(_get(bundle, "degraded_reasons", [])), engines=dict(_get(bundle, "engines", {})), timings_ms=dict(_get(bundle, "timings_ms", {})), page_flags=flags_list)
     record = InvoiceRecord(record_id=str(uuid.uuid4()), source=RecordSource(**src), invoice=merged, line_items=line_items, validation=Validation(), review=Review(), quality=quality)
     from vyom.validation import validate
     return validate(record, repair=True)

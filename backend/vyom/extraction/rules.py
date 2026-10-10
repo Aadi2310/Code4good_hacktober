@@ -36,7 +36,7 @@ _LABELS: dict[str, tuple[str, ...]] = {
     "cess": ("cess",), "total_tax": ("total tax", "gst total", "tax amount", "vat"),
     "round_off": ("round off", "rounding"),
     "total_amount": ("grand total", "net payable", "amount payable", "invoice total", "total amount", "gross worth", "total"),
-    "amount_in_words": ("amount in words", "total in words", "rupees in words"),
+    "amount_in_words": ("amount in words", "total in words", "rupees in words", "rupees in word"),
 }
 
 
@@ -74,7 +74,7 @@ _LINE_LABELS: dict[str, tuple[str, ...]] = {
 }
 _GSTIN = re.compile(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b", re.IGNORECASE)
 _CANDIDATE = re.compile(r"(?<![A-Z0-9])[A-Z0-9][A-Z0-9 -]{12,17}[A-Z0-9](?![A-Z0-9])", re.IGNORECASE)
-_DATE = re.compile(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})\b")
+_DATE = re.compile(r"\b(?:\d{1,2}[|/.-]\d{1,2}[|/.-]\d{2,4}|\d{4}-\d{2}-\d{2})\b")
 _AMOUNT = re.compile(r"(?<![A-Z])(?:[₹$€£]\s*|INR\s*|Rs\.?\s*)?-?\d[\d,]*(?:\.\d{1,2})?(?:/-|=\d{2})?", re.IGNORECASE)
 _PAN = re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b", re.IGNORECASE)
 _PHONE = re.compile(r"(?:\+91[\s-]?)?[6-9]\d{9}\b")
@@ -235,6 +235,20 @@ def extract_rules(pages: list[PageData]) -> RawInvoice:
                 if match:
                     result.invoice.setdefault(field, []).append(_field(match.group(0), page_num, tokens, text, 0.65)); break
 
+    if not result.invoice.get("supplier_name"):
+        m_for = re.search(r"\bFor\s+([A-Za-z\s]{3,35})\b", full_text)
+        if m_for:
+            s_val = m_for.group(1).strip()
+            s_toks = [t for t in all_tokens if any(w.lower() in t.text.lower() for w in s_val.split())]
+            result.invoice["supplier_name"] = [_field(s_val, pages[0].index if pages else 1, s_toks, m_for.group(0), 0.82)]
+
+    if not result.invoice.get("buyer_name"):
+        m_ms = re.search(r"\bM/s\.?\s*([A-Za-z0-9\.\s\+]+?)(?=\s*(?:Bill\s+No|Invoice|Date|Sr\.|\n|\Z))", full_text, re.I)
+        if m_ms:
+            b_val = m_ms.group(1).strip().rstrip(".,")
+            b_toks = [t for t in all_tokens if any(w.lower() in t.text.lower() for w in b_val.split()[:2])]
+            result.invoice["buyer_name"] = [_field(b_val, pages[0].index if pages else 1, b_toks, m_ms.group(0), 0.82)]
+
     result.line_items = _extract_line_items(pages)
     # Metadata not part of the frozen contract stays attached as a note to related hypotheses.
     for field, regex in (("pan", _PAN), ("phone", _PHONE), ("email", _EMAIL), ("pincode", _PIN), ("ifsc", _IFSC), ("irn", _IRN)):
@@ -381,6 +395,11 @@ def _extract_totals(result: RawInvoice, lines: list[tuple[int, str, list[Token]]
         low = text.casefold()
         for priority, label in enumerate(_TOTAL_PRIORITY):
             if label in low:
+                m_after = re.search(r"\b" + re.escape(label) + r"\s*[:$₹€£\-]?\s*([0-9.,]+)", text, re.I)
+                if m_after:
+                    raw = m_after.group(1).strip()
+                    choices.append((priority, page_num, line_index, label, raw, tokens))
+                    break
                 nums = list(_AMOUNT.finditer(text))
                 if nums:
                     raw = nums[-1].group(0).strip()
@@ -394,7 +413,7 @@ def _extract_totals(result: RawInvoice, lines: list[tuple[int, str, list[Token]]
                     result.invoice.setdefault(field, []).append(_field(value, page_num, tokens, text))
     if choices:
         priority, page_num, _line_index, label, value, tokens = sorted(choices, key=lambda item: (item[0], -item[2]))[0]
-        result.invoice["total_amount"] = [_field(value, page_num, tokens, f"{label}: {value}")]
+        result.invoice["total_amount"] = [_field(value, page_num, tokens, f"{label}: {value}", 0.92)]
 
 
 def _extract_document_type(result: RawInvoice, text: str, pages: list[PageData], tokens: list[Token]) -> None:
