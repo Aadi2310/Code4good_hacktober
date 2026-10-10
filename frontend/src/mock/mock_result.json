@@ -1,0 +1,29 @@
+{
+  "job_id":"job_2024_001","status":"needs_review","input":{"filename":"INV-2024-001.pdf","input_kind":"pdf_digital"},
+  "documents":[{
+    "schema_version":"1.0","record_id":"inv-2024-001","source":{"filename":"INV-2024-001.pdf","sha256":"sample","detected_type":"application/pdf","input_kind":"pdf_digital","page_range":[1]},
+    "invoice":{
+      "invoice_no":{"value":"INV/24/001","raw":"INV/24/001","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.65,"y0":0.16,"x1":0.9,"y1":0.2}},
+      "invoice_date":{"value":"2024-01-12","raw":"12 Jan 2024","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.65,"y0":0.21,"x1":0.88,"y1":0.25}},
+      "supplier_name":{"value":"Global Tech Solutions","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.17,"x1":0.52,"y1":0.21}},
+      "supplier_gstin":{"value":"27AAACG0000Z1Z5","confidence":0.72,"status":"needs_review","sources":["pdf_text","rules"],"note":"Please confirm the final GSTIN characters.","source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.27,"x1":0.48,"y1":0.31}},
+      "buyer_name":{"value":"Cloudwise Technologies Pvt. Ltd.","confidence":0.96,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.4,"x1":0.57,"y1":0.45}},
+      "buyer_gstin":{"value":"27AAPFU0939F1ZV","confidence":0.95,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.49,"x1":0.46,"y1":0.53}},
+      "subtotal":{"value":"181355.00","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.78,"x1":0.9,"y1":0.82}},
+      "taxable_value":{"value":"181355.00","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.78,"x1":0.9,"y1":0.82}},
+      "cgst":{"value":"16322.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.83,"x1":0.9,"y1":0.86}},
+      "sgst":{"value":"16323.00","confidence":0.97,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.86,"x1":0.9,"y1":0.89}},
+      "total_tax":{"value":"32645.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.83,"x1":0.9,"y1":0.89}},
+      "total_amount":{"value":"214000.00","confidence":0.97,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.68,"y0":0.92,"x1":0.9,"y1":0.97}},
+      "place_of_supply":{"value":"Maharashtra (27)","confidence":0.91,"status":"accepted","sources":["rules"],"source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.33,"x1":0.43,"y1":0.37}}
+    },
+    "line_items":[
+      {"line_no":{"value":"1","confidence":0.99,"status":"accepted"},"description":{"value":"Cloud Hosting - Enterprise","confidence":0.98,"status":"accepted","source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.61,"x1":0.44,"y1":0.65}},"hsn_sac":{"value":"998315","confidence":0.85,"status":"needs_review"},"quantity":{"value":"1","confidence":0.99,"status":"accepted"},"unit":{"value":"month","confidence":0.91,"status":"accepted"},"unit_price":{"value":"145000.00","confidence":0.99,"status":"accepted"},"discount":{"value":"0.00","confidence":0.99,"status":"accepted"},"taxable_value":{"value":"145000.00","confidence":0.99,"status":"accepted"},"tax_rate":{"value":"18","confidence":0.98,"status":"accepted"},"cgst":{"value":"13050.00","confidence":0.98,"status":"accepted"},"sgst":{"value":"13050.00","confidence":0.98,"status":"accepted"},"igst":{"value":null,"confidence":0,"status":"missing"},"line_total":{"value":"171100.00","confidence":0.98,"status":"accepted"}},
+      {"line_no":{"value":"2","confidence":0.99,"status":"accepted"},"description":{"value":"Premium Support 24/7","confidence":0.96,"status":"accepted","source_page":1,"bbox":{"page":1,"x0":0.1,"y0":0.68,"x1":0.42,"y1":0.72}},"hsn_sac":{"value":"998313","confidence":0.82,"status":"needs_review"},"quantity":{"value":"1","confidence":0.99,"status":"accepted"},"unit":{"value":"month","confidence":0.91,"status":"accepted"},"unit_price":{"value":"36355.00","confidence":0.99,"status":"accepted"},"discount":{"value":"0.00","confidence":0.99,"status":"accepted"},"taxable_value":{"value":"36355.00","confidence":0.99,"status":"accepted"},"tax_rate":{"value":"18","confidence":0.98,"status":"accepted"},"cgst":{"value":"3272.00","confidence":0.98,"status":"accepted"},"sgst":{"value":"3273.00","confidence":0.98,"status":"accepted"},"igst":{"value":null,"confidence":0,"status":"missing"},"line_total":{"value":"428...00","confidence":0.98,"status":"accepted"}}
+    ],
+    "validation":{"status":"valid_with_warnings","score":0.92,"checks":[{"code":"GSTIN_CHECKSUM","severity":"warning","passed":false,"field_paths":["invoice.supplier_gstin"],"message":"Supplier GSTIN checksum needs a manual review.","expected":"Valid checksum","actual":"Uncertain final character"},{"code":"TOTALS_MATCH","severity":"info","passed":true,"field_paths":["invoice.total_amount"],"message":"Subtotal and tax add up to the invoice total.","expected":"₹2,14,000.00","actual":"₹2,14,000.00"}],"corrections":[]},
+    "review":{"required":true,"state":"pending","history":[{"ts":"2024-01-12T10:40:00Z","actor":"VYOM+","action":"edit","field_path":"invoice.total_amount","old":"214000.00","new":"214000.00"}]},
+    "quality":{"overall_confidence":0.97,"degraded":false,"degraded_reasons":[],"engines":{"text":"pdfplumber","rules":"vyom-rules/1.0"},"timings_ms":{"parse":210,"extract":422,"validate":31},"page_flags":[]},"duplicates":[]
+  }],
+  "tabular":{"table_rows":[],"mapping":[],"unmapped_columns":[],"warnings":[]},"artifacts":{"pages":[]},"timings_ms":{"total":663}
+}

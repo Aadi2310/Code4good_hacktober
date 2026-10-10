@@ -1,0 +1,47 @@
+{
+  "job_id": "mock",
+  "status": "completed",
+  "input": {
+    "filename": "sample-invoice.pdf",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "detected_type": "application/pdf",
+    "input_kind": "pdf_digital",
+    "page_range": [1]
+  },
+  "documents": [
+    {
+      "schema_version": "1.0",
+      "record_id": "mock-record-1",
+      "source": {
+        "filename": "sample-invoice.pdf",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "detected_type": "application/pdf",
+        "input_kind": "pdf_digital",
+        "page_range": [1]
+      },
+      "invoice": {
+        "invoice_no": {"value":"INV-2026-0142","raw":"Invoice No: INV-2026-0142","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1,"evidence_text":"Invoice No: INV-2026-0142"},
+        "invoice_date": {"value":"2026-09-18","raw":"18/09/2026","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "supplier_name": {"value":"Acme Components Pvt Ltd","confidence":0.96,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "supplier_gstin": {"value":"27ABCDE1234F1Z5","raw":"27ABCDE1234F1Z5","confidence":0.55,"status":"needs_review","sources":["ocr"],"source_page":1,"bbox":{"page":1,"x0":0.63,"y0":0.14,"x1":0.88,"y1":0.18},"evidence_text":"GSTIN: 27ABCDE1234F1Z5"},
+        "buyer_name": {"value":"Northstar Retail","confidence":0.93,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "subtotal": {"value":"1000.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "cgst": {"value":"90.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "sgst": {"value":"90.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},
+        "total_amount": {"value":"1180.00","confidence":0.97,"status":"accepted","sources":["pdf_text"],"source_page":1}
+      },
+      "line_items": [
+        {"line_no":{"value":"1","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1},"description":{"value":"Precision fasteners","confidence":0.97,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.08,"y0":0.43,"x1":0.36,"y1":0.47}},"hsn_sac":{"value":"731815","confidence":0.96,"status":"accepted","sources":["pdf_text"],"source_page":1},"quantity":{"value":"10","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"unit_price":{"value":"60.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"taxable_value":{"value":"600.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"tax_rate":{"value":"18","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"cgst":{"value":"54.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"sgst":{"value":"54.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"line_total":{"value":"708.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1}},
+        {"line_no":{"value":"2","confidence":0.99,"status":"accepted","sources":["pdf_text"],"source_page":1},"description":{"value":"Assembly service","confidence":0.95,"status":"accepted","sources":["pdf_text"],"source_page":1,"bbox":{"page":1,"x0":0.08,"y0":0.49,"x1":0.36,"y1":0.53}},"hsn_sac":{"value":"9988","confidence":0.93,"status":"accepted","sources":["pdf_text"],"source_page":1},"quantity":{"value":"2","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"unit_price":{"value":"200.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"taxable_value":{"value":"400.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"tax_rate":{"value":"18","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"cgst":{"value":"36.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"sgst":{"value":"36.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1},"line_total":{"value":"472.00","confidence":0.98,"status":"accepted","sources":["pdf_text"],"source_page":1}}
+      ],
+      "validation": {"status":"needs_review","score":0.72,"checks":[{"code":"LOW_CONFIDENCE_FIELD","severity":"warning","passed":false,"field_paths":["invoice.supplier_gstin"],"message":"Supplier GSTIN confidence is below the acceptance threshold","expected":"0.70 or higher","actual":"0.55"},{"code":"GST_SPLIT_MISMATCH","severity":"error","passed":false,"field_paths":["invoice.cgst","invoice.sgst"],"message":"Tax breakdown requires review"}],"corrections":[],"repair_candidates":[]},
+      "review": {"required":true,"state":"pending","history":[]},
+      "quality": {"overall_confidence":0.91,"handwriting_ratio":0,"degraded":false,"degraded_reasons":[],"engines":{"pdf":"pypdfium2","extractor":"rules"},"timings_ms":{"total":240},"page_flags":[]},
+      "duplicates": [{"other_job_id":"job-previous","other_doc_index":0,"kind":"business_key","score":0.95,"reasons":["same supplier GSTIN and normalized invoice number","same invoice date"]}]
+    }
+  ],
+  "tabular": null,
+  "error": null,
+  "artifacts": {"pages":["/api/v1/jobs/mock/artifacts/page-1.jpg"]},
+  "timings_ms": {"total":240}
+}

@@ -1,0 +1,7 @@
+file,invoice_number,date,supplier,supplier_gstin,buyer,buyer_gstin,taxable,cgst,sgst,total
+invoice_01.jpg,VY-2025-0001,01-01-2025,Blue Banyan Systems,27ABCPD1234E1ZE,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,181355.00,16321.95,16321.95,213998.90
+invoice_02.jpg,VY-2025-0002,02-02-2025,Northstar Secure Networks,27BDEPA2345F1Z2,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,89900.00,8091.00,8091.00,106082.00
+invoice_03.jpg,VY-2025-0003,03-03-2025,Aarav Office Furnishings,27CDFPA3456G1ZS,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,45500.00,4095.00,4095.00,53690.00
+invoice_04.jpg,VY-2025-0004,04-04-2025,Prism Safety Supplies,27DEGPA4567H1ZG,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,26100.00,2349.00,2349.00,30798.00
+invoice_05.jpg,VY-2025-0005,05-05-2025,Nimbus Data Services,27EFHPA5678J1Z1,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,124500.00,11205.00,11205.00,146910.00
+invoice_06.jpg,VY-2026-0006,06-06-2025,Luma Electrical Works,27FGJPA6789K1ZO,Cloudwise Technologies Pvt. Ltd.,27HJKPA7890L1ZG,46600.00,4194.00,4194.00,54988.00

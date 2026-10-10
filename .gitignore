@@ -1,5 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.venv/
+backend/.venv/
+env/
+venv/
+ENV/
+backend/.runtime-packages/
+frontend/node_modules/
+frontend/vite.run.config.mjs
+
+# Large datasets and archives (store trained models in backend/vyom/models_data/)
+archive/
+gnhk_dataset/
+*.tar
+*.zip
+
+# Runtime artifacts and QA test directories
+.qa-*
+backend/data-e2e*
+backend/data/
+/data/
+
+# Image/PDF ignore rules
 *.pdf
 *.png
-
 !assets/
 !assets/*.png
+!frontend/public/samples/
+!frontend/public/samples/**

@@ -1,0 +1,11 @@
+# P2 dependencies verified in the Python 3.12 environment on 2026-10-10.
+rapidocr==3.10.0
+onnxruntime==1.31.0
+opencv-python-headless==5.0.0.93
+zxing-cpp==3.1.1
+rapidfuzz==3.14.6
+PyYAML==6.0.3
+pdfplumber==0.11.9
+pypdfium2==5.13.0
+Pillow==12.3.0
+numpy==2.5.3
