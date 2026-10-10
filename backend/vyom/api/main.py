@@ -1,6 +1,7 @@
 """P1 platform API: bounded uploads, background jobs, review and exports."""
 from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse, FileResponse
@@ -10,7 +11,7 @@ import asyncio
 from pydantic import BaseModel, Field
 from pathlib import Path
 from datetime import datetime,timezone
-import hashlib,json,hmac,os,re,time,uuid,shutil,threading
+import hashlib,json,hmac,os,re,time,uuid,shutil,threading,logging
 from ..config import DATA_DIR,MAX_UPLOAD_BYTES,MAX_FILES_PER_REQUEST,JOB_TIMEOUT_S
 from ..errors import PipelineError
 from ..intake import detect
@@ -25,6 +26,31 @@ from ..validation import validate
 app=FastAPI(title="VYOM+ Backend API",version="1.0.0",openapi_url="/api/v1/openapi.json",docs_url="/docs")
 app.add_middleware(CORSMiddleware,allow_origins=os.getenv("CORS_ORIGINS","http://localhost:5173").split(","),allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 _writes={};_executor=ThreadPoolExecutor(max_workers=max(1,int(os.getenv("WORKER_THREADS","2"))),thread_name_prefix="vyom-worker");_maintenance_stop=threading.Event()
+_logger=logging.getLogger(__name__)
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    # --- startup ---
+    _maintenance_stop.clear()
+    _retention_loop_once()
+    store.recover_running()
+    for job in store.queued_jobs():
+        path=DATA_DIR/"artifacts"/job["id"]/"source.bin"
+        if not path.is_file():
+            store.update(job["id"],"failed",error="SOURCE_MISSING",stage="failed",error_code="SOURCE_MISSING",error_message="Stored upload is unavailable")
+            continue
+        kind=job.get("kind") or job.get("input_kind") or "csv"
+        mime={"csv":"text/csv","xlsx":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","pdf":"application/pdf","jpeg":"image/jpeg","png":"image/png"}.get(kind,"application/octet-stream")
+        input_kind=job.get("input_kind") or {"pdf":"pdf_scanned","jpeg":"image_printed","png":"image_printed"}.get(kind,kind)
+        source=RecordSource(filename=job["filename"],sha256=job["sha256"],detected_type=mime,input_kind=input_kind)
+        _executor.submit(_process,job["id"],path,source,json.loads(job.get("options_json") or "{}"))
+    threading.Thread(target=_retention_loop,name="vyom-retention",daemon=True).start()
+    yield
+    # --- shutdown ---
+    _maintenance_stop.set()
+
+app=FastAPI(title="VYOM+ Backend API",version="1.0.0",openapi_url="/api/v1/openapi.json",docs_url="/docs",lifespan=_lifespan)
+app.add_middleware(CORSMiddleware,allow_origins=os.getenv("CORS_ORIGINS","http://localhost:5173").split(","),allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 
 class Edit(BaseModel):path:str;value:str|None
 class PatchRequest(BaseModel):edits:list[Edit]=Field(min_length=1);actor:str="reviewer"
@@ -51,7 +77,7 @@ def _field(record,name):
     return value.value if value else None
 def _source_key_value(s):return re.sub(r"[^A-Z0-9]","",str(s or "").upper())
 def _process(job_id,source_path,source,options):
-    started=time.perf_counter();partial=None
+    started=time.perf_counter();partial=None;table=None;page_artifacts=[]
     try:
         store.update(job_id,"processing",stage="parsing",progress=.20)
         if source.input_kind in {"csv","xlsx"}:
@@ -59,7 +85,23 @@ def _process(job_id,source_path,source,options):
             table={"table_rows":result.table_rows,"mapping":result.mapping,"unmapped_columns":result.unmapped_columns,"warnings":[w.model_dump(mode="json") for w in result.warnings]}
             partial={"job_id":job_id,"status":"failed","input":source.model_dump(mode="json"),"documents":[r.model_dump(mode="json") for r in records],"tabular":table,"error":{"code":"JOB_TIMEOUT","message":"Partial tabular output retained after timeout"},"artifacts":{"pages":[]},"timings_ms":{"total":int((time.perf_counter()-started)*1000)}}
         else:
-            raise PipelineError("DOC_PROCESSOR_UNAVAILABLE",f"{source.input_kind} was detected but the P2 document processor is not connected",{"kind":source.input_kind})
+            # Keep the optional document dependencies lazy so tabular-only deployments
+            # continue to work without installing the P2 requirements.
+            try:
+                from ..docai import build_bundle
+                from ..extraction import run as extraction_run
+            except ImportError as exc:
+                raise PipelineError("DOC_PROCESSOR_UNAVAILABLE","P2 document dependencies are unavailable; install backend/requirements/p2.txt",{"kind":source.input_kind}) from exc
+            artifact=DATA_DIR/"artifacts"/job_id
+            store.update(job_id,"processing",stage="extracting",progress=.45)
+            kind={"pdf_digital":"pdf","pdf_scanned":"pdf","pdf_mixed":"pdf","image_printed":"jpeg","image_handwritten":"jpeg","image_mixed":"jpeg"}.get(source.input_kind,source.input_kind)
+            bundle=build_bundle(source_path,kind,artifact,options)
+            # P3's source contract records the classification made from page content.
+            document_source=source.model_copy(update={"input_kind":bundle.input_kind})
+            store.update(job_id,"processing",stage="validating",progress=.70)
+            records=extraction_run(bundle,document_source,options)
+            page_artifacts=sorted({Path(name).name for page in bundle.pages for name in (page.original_path,page.enhanced_path) if name})
+            if (artifact/"ocr.json").is_file():page_artifacts.append("ocr.json")
         if time.perf_counter()-started>int(options.get("timeout_s",JOB_TIMEOUT_S)):
             raise PipelineError("JOB_TIMEOUT","Processing exceeded the configured job deadline")
         store.update(job_id,"processing",stage="dedupe",progress=.80)
@@ -77,7 +119,7 @@ def _process(job_id,source_path,source,options):
             prior.append((job_id,index,rec))
         duration=int((time.perf_counter()-started)*1000)
         mismatch=[Check(code="FORMAT_MISMATCH",severity="info",passed=True,message="File extension did not match detected content; content type was used") .model_dump(mode="json")] if options.get("_format_mismatch") else []
-        envelope={"job_id":job_id,"status":"completed","input":source.model_dump(mode="json"),"documents":[r.model_dump(mode="json") for r in records],"tabular":table if source.input_kind in {"csv","xlsx"} else None,"error":None,"artifacts":{"pages":[]},"timings_ms":{"total":duration},"warnings":mismatch}
+        envelope={"job_id":job_id,"status":"completed","input":source.model_dump(mode="json"),"documents":[r.model_dump(mode="json") for r in records],"tabular":table,"error":None,"artifacts":{"pages":[f"/api/v1/jobs/{job_id}/artifacts/{name}" for name in page_artifacts]},"timings_ms":{"total":duration},"warnings":mismatch}
         artifact=DATA_DIR/"artifacts"/job_id;artifact.mkdir(parents=True,exist_ok=True)
         (artifact/"result.json").write_text(json.dumps(envelope,ensure_ascii=False,indent=2),encoding="utf-8")
         store.update(job_id,"completed",envelope,stage="done",progress=1)
@@ -88,6 +130,7 @@ def _process(job_id,source_path,source,options):
             store.update(job_id,"failed",partial,error=e.code,stage="failed",progress=1,error_code=e.code,error_message=e.message)
         else:store.update(job_id,"failed",error=e.code,stage="failed",progress=1,error_code=e.code,error_message=e.message)
     except Exception:
+        _logger.exception("Invoice processing failed for job %s",job_id)
         store.update(job_id,"failed",error="INTERNAL_ERROR",stage="failed",progress=1,error_code="INTERNAL_ERROR",error_message="Job processing failed")
 
 def _queue(path,filename,sha,detected,batch,options,existing_id=None):
@@ -114,22 +157,6 @@ def _retention_loop():
             folder=DATA_DIR/"artifacts"/jid
             if folder.exists():shutil.rmtree(folder,ignore_errors=True)
 
-@app.on_event("startup")
-def resume_and_maintain():
-    _maintenance_stop.clear()
-    _retention_loop_once()
-    store.recover_running()
-    for job in store.queued_jobs():
-        path=DATA_DIR/"artifacts"/job["id"]/"source.bin"
-        if not path.is_file():
-            store.update(job["id"],"failed",error="SOURCE_MISSING",stage="failed",error_code="SOURCE_MISSING",error_message="Stored upload is unavailable")
-            continue
-        kind=job.get("kind") or job.get("input_kind") or "csv"
-        mime={"csv":"text/csv","xlsx":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","pdf":"application/pdf","jpeg":"image/jpeg","png":"image/png"}.get(kind,"application/octet-stream")
-        input_kind=job.get("input_kind") or {"pdf":"pdf_scanned","jpeg":"image_printed","png":"image_printed"}.get(kind,kind)
-        source=RecordSource(filename=job["filename"],sha256=job["sha256"],detected_type=mime,input_kind=input_kind)
-        _executor.submit(_process,job["id"],path,source,json.loads(job.get("options_json") or "{}"))
-    threading.Thread(target=_retention_loop,name="vyom-retention",daemon=True).start()
 
 def _retention_loop_once():
     for jid in store.cleanup_expired():
@@ -167,8 +194,6 @@ async def request_problem(request,exc):
     return _problem("INVALID_REQUEST","Request validation failed",{"issues":issues},422)
 @app.exception_handler(Exception)
 async def unexpected_problem(request,exc):return _problem("INTERNAL_ERROR","The request could not be completed",status=500)
-@app.on_event("shutdown")
-def stop_maintenance():_maintenance_stop.set()
 
 @app.get("/api/v1/health")
 @app.get("/health")

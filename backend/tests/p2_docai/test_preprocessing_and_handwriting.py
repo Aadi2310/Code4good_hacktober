@@ -4,8 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import numpy as np
-import cv2
+import pytest
+
+np = pytest.importorskip("numpy", reason="P2 imaging dependencies not installed")
+cv2 = pytest.importorskip("cv2", reason="P2 opencv-python-headless not installed")
+pytestmark = pytest.mark.skipif(cv2 is None, reason="cv2 unavailable")
 from PIL import Image, ImageDraw
 
 from vyom.handwriting.detect import apply_occlusion_confidence, score_line

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +8,10 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from vyom.docai import build_bundle
+
+_pdfplumber_available = importlib.util.find_spec("pdfplumber") is not None
+_rapidocr_available = importlib.util.find_spec("rapidocr") is not None or importlib.util.find_spec("rapidocr_onnxruntime") is not None
+_p2_available = _pdfplumber_available and _rapidocr_available
 
 
 def _minimal_pdf(lines: list[str]) -> bytes:
@@ -54,6 +59,7 @@ def _minimal_pdf(lines: list[str]) -> bytes:
 
 
 class PipelineIntegrationTests(unittest.TestCase):
+    @unittest.skipUnless(_p2_available, "P2 packages (pdfplumber, rapidocr) not installed")
     def test_digital_pdf_builds_evidence_bundle(self) -> None:
         lines = [
             "TAX INVOICE", "Invoice No: INV-42", "Invoice Date: 04/05/2026",
@@ -75,6 +81,7 @@ class PipelineIntegrationTests(unittest.TestCase):
         self.assertEqual(bundle.segments[0].rules.invoice["invoice_no"][0].value, "INV-42")
         self.assertEqual(len(bundle.segments[0].rules.line_items), 1)
 
+    @unittest.skipUnless(_rapidocr_available, "rapidocr package not installed (P2 dependency)")
     def test_printed_image_runs_ocr_and_returns_a_bundle(self) -> None:
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as folder:
             root = Path(folder)

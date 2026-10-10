@@ -2,14 +2,18 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from vyom.models import Token
 from vyom.ocr.engine import RapidOcrEngine, merge_lines, read_with_tiles
 
+_rapidocr_available = pytest.importorskip.__module__ is not None and __import__("importlib.util", fromlist=["find_spec"]).find_spec("rapidocr") is not None or __import__("importlib.util", fromlist=["find_spec"]).find_spec("rapidocr_onnxruntime") is not None
+
 
 class OcrEngineTests(unittest.TestCase):
+    @unittest.skipUnless(_rapidocr_available, "rapidocr package not installed (P2 dependency)")
     def test_tokens_are_normalized_and_grouped_into_lines(self) -> None:
         image = Image.new("RGB", (1200, 400), "white")
         draw = ImageDraw.Draw(image)

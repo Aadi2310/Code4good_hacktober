@@ -4,8 +4,10 @@ import base64
 import json
 import unittest
 
-import numpy as np
-import zxingcpp
+import pytest
+
+np = pytest.importorskip("numpy", reason="P2 imaging dependencies not installed")
+zxingcpp = pytest.importorskip("zxingcpp", reason="P2 zxing-cpp not installed")
 from PIL import Image
 
 from vyom.extraction.qr import extract_qr
