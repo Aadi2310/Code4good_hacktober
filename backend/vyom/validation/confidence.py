@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-BASE_CONFIDENCE = {"qr": .99, "excel": 1.0, "csv": 1.0, "pdf_text": .98, "ocr": .97, "trocr": .85, "vlm": .75, "vlm_crop": .80, "llm_text": .70, "rules": .80}
-FAMILIES = {"qr": "qr", "excel": "tabular", "csv": "tabular", "pdf_text": "pdf_text", "ocr": "ocr_rules", "rules": "ocr_rules", "trocr": "trocr", "vlm": "vlm", "vlm_crop": "vlm"}
+BASE_CONFIDENCE = {"qr": .99, "excel": 1.0, "csv": 1.0, "pdf_text": .98, "ocr": .97, "trained_model": .95, "trocr": .85, "rules": .80, "vlm_crop": .80, "vlm": .75, "llm_text": .70}
+FAMILIES = {"qr": "qr", "excel": "tabular", "csv": "tabular", "pdf_text": "pdf_text", "ocr": "ocr_rules", "rules": "ocr_rules", "trained_model": "trained_model", "trocr": "trocr", "vlm": "vlm", "vlm_crop": "vlm"}
 
 
 def source_confidence(source: str, reported: float | None = None, *, handwritten: bool = False) -> float:

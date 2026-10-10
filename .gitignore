@@ -1,5 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.venv/
+backend/.venv/
+env/
+venv/
+ENV/
+
+# Large datasets and archives (store trained models in backend/vyom/models_data/)
+archive/
+gnhk_dataset/
+*.tar
+*.zip
+
+# Runtime artifacts and QA test directories
+.qa-*
+backend/data-e2e*
+backend/data/
+
+# Image/PDF ignore rules
 *.pdf
 *.png
-
 !assets/
 !assets/*.png

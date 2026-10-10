@@ -28,7 +28,9 @@ def parse_date(s: str | None, *, today: date | None = None) -> tuple[str | None,
             day, month, year = map(int, m.groups())
             if year < 100:
                 year += 2000 if year <= 69 else 1900
-            if day <= 12 and month <= 12 and day != month:
+            if month > 12 and 1 <= day <= 12:
+                day, month = month, day
+            elif day <= 12 and month <= 12 and day != month:
                 notes.append("DATE_AMBIGUOUS_DAY_FIRST")
             try:
                 parsed = date(year, month, day)

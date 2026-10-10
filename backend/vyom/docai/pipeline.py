@@ -43,7 +43,12 @@ def warmup() -> None:
 def available() -> dict[str, bool]:
     """Report optional P2 engines without making the document path depend on them."""
     engine = _engine()
-    return {"ocr": engine.available(), "trocr": False}
+    try:
+        from vyom.handwriting import available as hw_available
+        has_hw = hw_available()
+    except Exception:
+        has_hw = False
+    return {"ocr": engine.available(), "trocr": has_hw}
 
 
 def build_bundle(path: Path, kind: str, work_dir: Path, options: dict) -> Bundle:
@@ -61,7 +66,12 @@ def build_bundle(path: Path, kind: str, work_dir: Path, options: dict) -> Bundle
     work_dir.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
     reasons: list[str] = []
-    engines: dict[str, str] = {"handwriting": "heuristic"}
+    try:
+        from vyom.handwriting import available as hw_available
+        has_hw = hw_available()
+    except Exception:
+        has_hw = False
+    engines: dict[str, str] = {"handwriting": "trained_gnhk" if has_hw else "heuristic"}
     pages: list[PageData] = []
     qrs: dict[int, list] = {}
     handwriting_weight = total_chars = 0
@@ -87,7 +97,7 @@ def build_bundle(path: Path, kind: str, work_dir: Path, options: dict) -> Bundle
         else:
             page.quality.setdefault("handwriting_ratio", 0.0)
     handwriting_ratio = handwriting_weight / max(total_chars, 1)
-    if handwriting_ratio >= 0.15 or options.get("expect_handwritten"):
+    if (handwriting_ratio >= 0.15 or options.get("expect_handwritten")) and not has_hw:
         reasons.append("TROCR_UNAVAILABLE")
 
     signals = gate_pages(pages)

@@ -8,13 +8,15 @@ from vyom.models import PageData
 
 INVOICE_SIGNALS = (
     "tax invoice", "invoice", "bill", "cash memo", "gstin", "gst", "hsn", "total", "amount", "qty",
+    "seller", "client", "vat", "net price", "net worth", "gross worth", "due date", "items",
+    "description", "tax id", "iban", "date of issue", "subtotal", "payment",
 )
 CARBON_PHRASES = (
     "original for recipient", "duplicate for transporter", "triplicate for supplier", "office copy",
     "customer copy", "terms and conditions", "e-way bill", "packing list", "delivery challan",
 )
 GSTIN_RE = re.compile(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b", re.IGNORECASE)
-AMOUNT_RE = re.compile(r"(?:₹|\bINR\b|\bRs\.?\s*)\s*\d[\d,]*(?:\.\d{1,2})?", re.IGNORECASE)
+AMOUNT_RE = re.compile(r"(?:₹|\bINR\b|\bRs\.?\s*|\$|€|£)\s*\d[\d,]*(?:[.,]\d{1,2})?", re.IGNORECASE)
 
 
 def page_is_carbon_copy(text: str) -> bool:

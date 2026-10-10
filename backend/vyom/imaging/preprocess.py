@@ -191,7 +191,20 @@ def find_blue_occlusions(image: np.ndarray) -> tuple[list[list[float]], float]:
     return boxes, ratio
 
 
-def prepare_image(path: str | Path, orientation: int = 0) -> PreparedImage:
+def enhance_handwriting(image: np.ndarray) -> np.ndarray:
+    """Enhance faint handwriting strokes, reduce paper texture, and boost ink contrast."""
+    if cv2 is None:
+        pil = Image.fromarray(image)
+        return np.asarray(ImageEnhance.Contrast(pil).enhance(1.25).filter(ImageFilter.SHARPEN))
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    bg = cv2.morphologyEx(gray, cv2.MORPH_DILATE, np.ones((5, 5), np.uint8))
+    diff = cv2.absdiff(gray, bg)
+    norm = cv2.normalize(diff, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+    inverted = cv2.cvtColor(255 - norm, cv2.COLOR_GRAY2RGB)
+    return cv2.addWeighted(image, 0.65, inverted, 0.35, 0)
+
+
+def prepare_image(path: str | Path, orientation: int = 0, expect_handwritten: bool = False) -> PreparedImage:
     original, flags = load_rgb(path)
     image, perspective = correct_perspective(original)
     image = rotate(image, orientation)
@@ -199,6 +212,9 @@ def prepare_image(path: str | Path, orientation: int = 0) -> PreparedImage:
         flags.append(f"ROTATED_{orientation % 360}")
     image, skew = deskew(image)
     enhanced, quality = enhance(image)
+    if expect_handwritten:
+        enhanced = enhance_handwriting(enhanced)
+        flags.append("HANDWRITING_ENHANCED")
     return PreparedImage(
         original=original,
         enhanced=enhanced,

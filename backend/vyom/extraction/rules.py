@@ -18,24 +18,24 @@ except ImportError:  # small dependency-free fallback
 
 _LABELS: dict[str, tuple[str, ...]] = {
     "invoice_no": ("invoice no", "invoice number", "inv no", "bill no", "document no"),
-    "invoice_date": ("invoice date", "date", "dated", "bill date"),
+    "invoice_date": ("invoice date", "date of issue", "date", "dated", "bill date"),
     "due_date": ("due date", "payment due"),
     "purchase_order_no": ("purchase order no", "po no", "order no"),
     "place_of_supply": ("place of supply", "state of supply"),
     "supplier_name": ("supplier", "seller", "from", "m s", "vendor"),
     "supplier_address": ("supplier address", "seller address", "address"),
-    "buyer_name": ("buyer", "bill to", "billed to", "customer", "consignee", "ship to"),
+    "buyer_name": ("buyer", "client", "bill to", "billed to", "customer", "consignee", "ship to"),
     "buyer_address": ("buyer address", "billing address", "ship to address"),
-    "supplier_gstin": ("supplier gstin", "seller gstin", "gstin", "gst no", "gst registration no"),
+    "supplier_gstin": ("supplier gstin", "seller gstin", "gstin", "gst no", "gst registration no", "tax id"),
     "buyer_gstin": ("buyer gstin", "bill to gstin", "customer gstin", "consignee gstin"),
     "reverse_charge": ("reverse charge", "reverse charge applicable"),
-    "subtotal": ("subtotal", "sub total", "taxable value", "assessable value"),
+    "subtotal": ("subtotal", "sub total", "taxable value", "assessable value", "net worth"),
     "discount": ("discount", "less discount"),
-    "taxable_value": ("taxable value", "total taxable value", "assessable value"),
+    "taxable_value": ("taxable value", "total taxable value", "assessable value", "net worth"),
     "cgst": ("cgst", "central gst"), "sgst": ("sgst", "state gst"), "igst": ("igst", "integrated gst"),
-    "cess": ("cess",), "total_tax": ("total tax", "gst total", "tax amount"),
+    "cess": ("cess",), "total_tax": ("total tax", "gst total", "tax amount", "vat"),
     "round_off": ("round off", "rounding"),
-    "total_amount": ("grand total", "net payable", "amount payable", "invoice total", "total amount", "total"),
+    "total_amount": ("grand total", "net payable", "amount payable", "invoice total", "total amount", "gross worth", "total"),
     "amount_in_words": ("amount in words", "total in words", "rupees in words"),
 }
 
@@ -63,26 +63,26 @@ def _load_label_synonyms() -> dict[str, tuple[str, ...]]:
 
 _LABELS = _load_label_synonyms()
 _LINE_LABELS: dict[str, tuple[str, ...]] = {
-    "line_no": ("sr no", "s no", "sl no", "line no", "item no"),
+    "line_no": ("sr no", "s no", "sl no", "line no", "item no", "no."),
     "description": ("description", "particulars", "item description", "product"),
     "hsn_sac": ("hsn", "hsn sac", "sac", "hsn code"),
-    "quantity": ("qty", "quantity"), "unit": ("unit", "uqc"),
-    "unit_price": ("rate", "unit price", "price"), "discount": ("discount",),
-    "taxable_value": ("taxable value", "taxable amount", "amount"), "tax_rate": ("gst rate", "tax rate", "rate %"),
+    "quantity": ("qty", "quantity"), "unit": ("unit", "uqc", "um"),
+    "unit_price": ("rate", "unit price", "price", "net price"), "discount": ("discount",),
+    "taxable_value": ("taxable value", "taxable amount", "amount", "net worth"), "tax_rate": ("gst rate", "tax rate", "rate %", "vat [%]", "vat"),
     "cgst": ("cgst",), "sgst": ("sgst",), "igst": ("igst",), "cess": ("cess",),
-    "line_total": ("total", "line total", "net amount", "amount"),
+    "line_total": ("total", "line total", "net amount", "amount", "gross worth"),
 }
 _GSTIN = re.compile(r"\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b", re.IGNORECASE)
 _CANDIDATE = re.compile(r"(?<![A-Z0-9])[A-Z0-9][A-Z0-9 -]{12,17}[A-Z0-9](?![A-Z0-9])", re.IGNORECASE)
 _DATE = re.compile(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}-\d{2}-\d{2})\b")
-_AMOUNT = re.compile(r"(?<![A-Z])(?:₹\s*|INR\s*|Rs\.?\s*)?-?\d[\d,]*(?:\.\d{1,2})?(?:/-|=\d{2})?", re.IGNORECASE)
+_AMOUNT = re.compile(r"(?<![A-Z])(?:[₹$€£]\s*|INR\s*|Rs\.?\s*)?-?\d[\d,]*(?:\.\d{1,2})?(?:/-|=\d{2})?", re.IGNORECASE)
 _PAN = re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b", re.IGNORECASE)
 _PHONE = re.compile(r"(?:\+91[\s-]?)?[6-9]\d{9}\b")
 _EMAIL = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
 _PIN = re.compile(r"\b[1-9]\d{5}\b")
 _IFSC = re.compile(r"\b[A-Z]{4}0[A-Z0-9]{6}\b", re.IGNORECASE)
 _IRN = re.compile(r"\b[0-9a-f]{64}\b", re.IGNORECASE)
-_TOTAL_PRIORITY = ("grand total", "net payable", "amount payable", "invoice total", "total amount", "total")
+_TOTAL_PRIORITY = ("grand total", "gross worth", "net payable", "amount payable", "invoice total", "total amount", "total")
 
 
 def _normal(value: str) -> str:
@@ -135,7 +135,17 @@ def _lines(pages: list[PageData]) -> list[tuple[int, str, list[Token]]]:
 
 def _label_value(line: str, label: str) -> str | None:
     match = re.search(re.escape(label) + r"\s*[:\-]?\s*(.+)$", line, re.IGNORECASE)
-    return match.group(1).strip(" :-|\t") if match and match.group(1).strip(" :-|\t") else None
+    if not match:
+        return None
+    val = match.group(1).strip(" :-|\t")
+    # Truncate before any subsequent field label on the same line
+    for other_labels in _LABELS.values():
+        for other in other_labels:
+            if other.lower() != label.lower() and len(other) >= 3:
+                idx = val.lower().find(other.lower())
+                if idx > 0 and (val[idx - 1].isspace() or val[idx - 1] in ":-|"):
+                    val = val[:idx].strip(" :-|\t")
+    return val if val else None
 
 
 def _find_anchored(text: str, field: str) -> tuple[str, str] | None:
@@ -234,6 +244,21 @@ def extract_rules(pages: list[PageData]) -> RawInvoice:
     _extract_document_type(result, full_text, pages, all_tokens)
     _extract_flags(result, full_text, pages, all_tokens)
     _extract_totals(result, lines)
+
+    # Merge hypotheses from trained layout & semantic invoice model
+    try:
+        from .model_extractor import extract_model_fields
+        model_inv = extract_model_fields(pages)
+        for field, field_hypotheses in model_inv.invoice.items():
+            if field not in result.invoice or not result.invoice[field]:
+                result.invoice[field] = field_hypotheses
+            else:
+                result.invoice[field].extend(field_hypotheses)
+        if not result.line_items and model_inv.line_items:
+            result.line_items = model_inv.line_items
+    except Exception:
+        pass
+
     return result
 
 

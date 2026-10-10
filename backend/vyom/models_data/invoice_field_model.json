@@ -1,0 +1,49 @@
+{
+  "model_type": "spatial_semantic_invoice_extractor",
+  "dataset": "archive_batch1",
+  "total_trained_samples": 1414,
+  "column_split_x": 0.48,
+  "line_band_tolerance": 0.012,
+  "confidence_defaults": {
+    "invoice_no": 1.0,
+    "invoice_date": 1.0,
+    "due_date": 0.9,
+    "supplier_name": 0.9781,
+    "supplier_address": 0.9,
+    "buyer_name": 0.9802,
+    "buyer_address": 0.9,
+    "supplier_gstin": 0.92,
+    "buyer_gstin": 0.92,
+    "total_amount": 0.9448,
+    "subtotal": 0.9576,
+    "total_tax": 0.9618,
+    "line_items": 0.8972
+  },
+  "evaluation_metrics": {
+    "total_invoices": 1414,
+    "field_accuracies": {
+      "invoice_no": 1.0,
+      "invoice_date": 1.0,
+      "seller_name": 0.978076379066478,
+      "client_name": 0.9801980198019802,
+      "total_amount": 0.9448373408769448,
+      "subtotal": 0.9575671852899575,
+      "tax": 0.9618104667609618
+    },
+    "field_counts": {
+      "invoice_no": 1414,
+      "invoice_date": 1414,
+      "seller_name": 1383,
+      "client_name": 1386,
+      "total_amount": 1336,
+      "subtotal": 1354,
+      "tax": 1360
+    },
+    "line_items_metrics": {
+      "precision": 1.0,
+      "recall": 0.8136379864334167,
+      "f1": 0.897244094488189,
+      "tp": 4558
+    }
+  }
+}
